@@ -474,13 +474,11 @@
         <h2>PT Murinda Sentra Baja - Laporan Realtime Material</h2>
         <div class="doc-meta">
             <div><strong>Attn:</strong> Logistik & Produksi</div>
-            <div><strong>Client:</strong> <span id="printClient"></span></div>
-            <div><strong>Periode:</strong> <span id="printPeriode"></span></div>
             <div><strong>Tgl Cetak:</strong> <span id="printDate"></span></div>
         </div>
     </div>
 
-    <h1>Surat Permintaan Pengadaan (SPP) Monitoring Sytem</h1>
+    <h1>Surat Permintaan Pengadaan (SPP) Monitoring System</h1>
     
     <div class="summary-grid">
         <div class="summary-card card-danger" id="summaryBoxMinus">
@@ -488,16 +486,14 @@
             <div id="minusContent" style="font-size:15px; color:#334155; font-weight: 500;">Memuat data kekurangan...</div>
         </div>
         <div class="summary-card card-success" id="summaryBoxPerf">
-            <h3>📈 Persentase Pemenuhan Material per Periode</h3>
+            <h3>📈 Persentase Pemenuhan Material Keseluruhan</h3>
             <div id="perfContent" style="font-weight: 500;">Memuat data performa...</div>
         </div>
     </div>
 
     <div class="controls">
         <div class="filters">
-            <select id="clientFilter" onchange="updateMaterialFilter()"><option>Loading Client...</option></select>
             <select id="materialFilter" onchange="renderTable()"><option>Loading Nama Material...</option></select>
-            <select id="periodeFilter" onchange="handlePeriodeChange()"><option>Loading SPP Periode...</option></select>
         </div>
         <div class="actions">
             <button class="btn-refresh" onclick="fetchData()">🍃 Sinkronisasi Data</button>
@@ -534,15 +530,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchData();
 });
 
-// Pembersih Nama Klien Agar Konsisten Berdasarkan Standar Dashboard
-function formatClient(val) {
-    if (!val) return val;
-    let lowerStr = String(val).toLowerCase();
-    if (lowerStr.includes('komatsu')) return 'Komatsu';
-    if (lowerStr.includes('sumitomo')) return 'Sumitomo';
-    return val;
-}
-
 // Menghilangkan Nilai Koma desimal (Format Angka Utuh)
 function formatWholeNumber(val) {
     if (val === "" || val === null || val === undefined) return 0;
@@ -578,7 +565,7 @@ async function fetchData() {
         headers = result.headers;
         allData = result.data;
         
-        populateFilters();
+        populateMaterialFilter();
         calculateDashboardMetrics();
     } catch (error) {
         console.error("Gagal sinkronisasi data:", error);
@@ -588,36 +575,14 @@ async function fetchData() {
     }
 }
 
-function populateFilters() {
-    let clients = new Set();
-    let periodes = new Set();
-    
-    const clientIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'client');
-    const periodeIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp periode');
-    
-    allData.forEach(row => {
-        if(clientIdx > -1 && row[clientIdx]) clients.add(formatClient(row[clientIdx]));
-        if(periodeIdx > -1 && row[periodeIdx]) periodes.add(row[periodeIdx]);
-    });
-    
-    fillSelect('clientFilter', ['Semua Client', ...Array.from(clients).sort()]);
-    fillSelect('periodeFilter', ['Semua SPP Periode', ...Array.from(periodes).sort()]);
-    
-    updateMaterialFilter(); 
-}
-
-function updateMaterialFilter() {
-    const selectedClient = document.getElementById('clientFilter').value;
-    const clientIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'client');
+function populateMaterialFilter() {
     const materialIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
     
     let materials = new Set();
     allData.forEach(row => {
-        if (materialIdx > -1 && row[materialIdx]) {
-            let rowClient = formatClient(row[clientIdx]);
-            if (selectedClient === 'Semua Client' || rowClient === selectedClient) {
-                materials.add(row[materialIdx]);
-            }
+        const isCompletelyEmpty = row.every(cell => cell === '' || cell === null || cell === undefined);
+        if (!isCompletelyEmpty && materialIdx > -1 && row[materialIdx]) {
+            materials.add(row[materialIdx]);
         }
     });
     
@@ -625,32 +590,27 @@ function updateMaterialFilter() {
     renderTable(); 
 }
 
-function handlePeriodeChange() {
-    renderTable();
-}
-
-// PERHITUNGAN UTAMA DASHBOARD METRICS: MATERIAL MINUS & PERSENTASE PEMENUHAN PER PERIODE
+// PERHITUNGAN UTAMA DASHBOARD METRICS: MATERIAL MINUS & PERSENTASE PEMENUHAN GLOBAL
 function calculateDashboardMetrics() {
     const materialIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
-    const sppQtyIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp qty');
+    const sppTotalIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp total');
     const kedatanganIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'kedatangan');
-    const periodeIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp periode');
 
-    if (materialIdx === -1 || sppQtyIdx === -1 || kedatanganIdx === -1) return;
+    if (materialIdx === -1 || sppTotalIdx === -1 || kedatanganIdx === -1) return;
 
     let minusMap = {};
-    let periodMetrics = {};
+    let totalSppGlobal = 0;
+    let totalDatangGlobal = 0;
 
     allData.forEach(row => {
         const isCompletelyEmpty = row.every(cell => cell === '' || cell === null || cell === undefined);
         if (isCompletelyEmpty) return;
 
         let matName = row[materialIdx];
-        let sppQty = formatWholeNumber(row[sppQtyIdx]);
+        let sppQty = formatWholeNumber(row[sppTotalIdx]);
         let datangQty = formatWholeNumber(row[kedatanganIdx]);
-        let prd = row[periodeIdx] || 'Tanpa Periode';
 
-        let sisa = datangQty - sppQty; // Jika kedatangan < spp qty, bernilai minus (-)
+        let sisa = datangQty - sppQty; // Jika kedatangan < spp total, bernilai minus (-)
 
         if (matName) {
             // Akumulasi Kekurangan Material
@@ -658,16 +618,11 @@ function calculateDashboardMetrics() {
                 minusMap[matName] = (minusMap[matName] || 0) + sisa;
             }
 
-            // Akumulasi per Periode untuk hitung persentase pemenuhan
-            if (!periodMetrics[prd]) {
-                periodMetrics[prd] = { totalSpp: 0, totalDatang: 0 };
-            }
-            
-            // LOGIKA BARU: Batasi nilai kedatangan efektif agar surplus di satu material tidak menutupi minus di material lain
+            // Batasi nilai kedatangan efektif agar surplus di satu material tidak memanipulasi minus di material lain
             let effectiveDatang = datangQty > sppQty ? sppQty : datangQty;
             
-            periodMetrics[prd].totalSpp += sppQty;
-            periodMetrics[prd].totalDatang += effectiveDatang;
+            totalSppGlobal += sppQty;
+            totalDatangGlobal += effectiveDatang;
         }
     });
 
@@ -684,29 +639,22 @@ function calculateDashboardMetrics() {
         minusContent.innerHTML = htmlMinus;
     }
 
-    // Render Box Persentase Pemenuhan per Periode
+    // Render Box Persentase Pemenuhan Global (Keseluruhan)
     const perfContent = document.getElementById('perfContent');
-    let htmlPerf = '';
-    
-    for (let prd in periodMetrics) {
-        let spp = periodMetrics[prd].totalSpp;
-        let datang = periodMetrics[prd].totalDatang;
-        let pct = spp > 0 ? Math.round((datang / spp) * 100) : 0;
-        if (pct > 100) pct = 100; // Cap pemenuhan max 100% dari target SPP
+    let pct = totalSppGlobal > 0 ? Math.round((totalDatangGlobal / totalSppGlobal) * 100) : 0;
+    if (pct > 100) pct = 100;
 
-        htmlPerf += `
-            <div class="perf-item">
-                <div class="perf-info">
-                    <span>Periode: ${prd}</span>
-                    <span>${pct}% Terpenuhi</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width: ${pct}%"></div>
-                </div>
+    perfContent.innerHTML = `
+        <div class="perf-item">
+            <div class="perf-info">
+                <span>Total Pemenuhan Material Akumulatif</span>
+                <span>${pct}% Terpenuhi</span>
             </div>
-        `;
-    }
-    perfContent.innerHTML = htmlPerf || 'Tidak ada data periode.';
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: ${pct}%"></div>
+            </div>
+        </div>
+    `;
 }
 
 function fillSelect(elementId, options) {
@@ -726,7 +674,7 @@ function renderTable() {
     tbody.innerHTML = '';
     thead.innerHTML = '';
     
-    // Setup Header Struktur Datar (Flat) Sesuai Permintaan
+    // Setup Header Struktur Datar (Flat)
     let trHead = document.createElement('tr');
     headers.forEach(h => {
         let th = document.createElement('th');
@@ -735,26 +683,19 @@ function renderTable() {
     });
     thead.appendChild(trHead);
     
-    const clientIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'client');
     const materialIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
-    const periodeIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp periode');
-    const sppQtyIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp qty');
+    const sppTotalIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp total');
     const kedatanganIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'kedatangan');
     
-    const selClient = document.getElementById('clientFilter').value;
     const selMaterial = document.getElementById('materialFilter').value;
-    const selPeriode = document.getElementById('periodeFilter').value;
     
     let filteredData = allData.filter(row => {
         const isCompletelyEmpty = row.every(cell => cell === '' || cell === null || cell === undefined);
         if (isCompletelyEmpty) return false;
 
-        let rowClient = formatClient(row[clientIdx]);
-        let matchClient = selClient === 'Semua Client' || rowClient === selClient;
         let matchMaterial = selMaterial === 'Semua Material' || (materialIdx > -1 && row[materialIdx] == selMaterial);
-        let matchPeriode = selPeriode === 'Semua SPP Periode' || (periodeIdx > -1 && row[periodeIdx] == selPeriode);
         
-        return matchClient && matchMaterial && matchPeriode;
+        return matchMaterial;
     });
     
     filteredData.forEach(row => {
@@ -766,7 +707,7 @@ function renderTable() {
             this.classList.add('selected-row');
         });
 
-        let sppVal = formatWholeNumber(row[sppQtyIdx]);
+        let sppVal = formatWholeNumber(row[sppTotalIdx]);
         let datangVal = formatWholeNumber(row[kedatanganIdx]);
         let statusMinus = datangVal - sppVal < 0;
 
@@ -775,19 +716,24 @@ function renderTable() {
             let cellValue = row[i] !== undefined && row[i] !== null ? row[i] : '';
             let hLower = h.toString().toLowerCase().trim();
 
-            if (hLower === 'client') {
-                cellValue = formatClient(cellValue);
-            } else if (hLower === 'spp qty' || hLower === 'kedatangan') {
-                cellValue = formatWholeNumber(cellValue);
+            if (hLower === 'spp total' || hLower === 'kedatangan') {
+                let numValue = formatWholeNumber(cellValue);
+                cellValue = numValue === 0 ? '-' : numValue;
             } else {
                 cellValue = formatDate(cellValue);
+                if (cellValue === 0 || cellValue === '0') cellValue = '-';
             }
             
             // Tambahkan tanda pengenal visual pada baris kolom kedatangan / material yang minus
             if (statusMinus && (hLower === 'kedatangan' || hLower === 'nama material')) {
-                let badgeClass = hLower === 'kedatangan' ? 'badge badge-danger' : '';
+                let badgeClass = (hLower === 'kedatangan' && cellValue !== '-') ? 'badge badge-danger' : (cellValue === '-' ? 'badge' : '');
                 let prefix = hLower === 'nama material' ? '⚠️ ' : '';
-                td.innerHTML = `<span class="${badgeClass}">${prefix}${cellValue}</span>`;
+                
+                if (cellValue === '-') {
+                    td.innerHTML = `<span style="color:#ef4444; font-weight:bold;">-</span>`;
+                } else {
+                    td.innerHTML = `<span class="${badgeClass}">${prefix}${cellValue}</span>`;
+                }
             } else if (!statusMinus && hLower === 'kedatangan' && datangVal > 0) {
                 td.innerHTML = `<span class="badge badge-success">✨ ${cellValue}</span>`;
             } else {
@@ -848,18 +794,12 @@ function applySticky() {
 }
 
 function printReport() {
-    const client = document.getElementById('clientFilter').value;
-    const periode = document.getElementById('periodeFilter').value;
-    
-    document.getElementById('printClient').textContent = client;
-    document.getElementById('printPeriode').textContent = periode;
-    
     const now = new Date();
     const dateStr = now.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     document.getElementById('printDate').textContent = dateStr;
 
     const oldTitle = document.title;
-    document.title = `Laporan_DataAPK_${client.replace(/\s+/g, '_')}_${periode.replace(/\s+/g, '_')}`;
+    document.title = `Laporan_Realtime_Material_${new Date().getTime()}`;
     window.print();
     document.title = oldTitle; 
 }
