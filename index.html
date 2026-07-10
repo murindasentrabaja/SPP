@@ -9,7 +9,7 @@
         /* ==========================================================================
            TEMA: ULTRA-GLASSMORPHISM & GEMINI PRO AESTHETIC
            ========================================================================== */
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
 
         :root {
             /* Gemini Soft Gradients */
@@ -44,6 +44,173 @@
             flex-direction: column;
             position: relative;
             overflow-x: hidden;
+        }
+
+        /* ==========================================
+           SCREEN LOGIN BACKGROUND PUTIH BERSIH
+           ========================================== */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background-color: #ffffff;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        #login-overlay.hidden {
+            display: none;
+        }
+
+        .login-wrapper {
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+        @media (max-width: 768px) { .login-wrapper { transform: scale(0.8); } }
+        @media (max-width: 500px) { .login-wrapper { transform: scale(0.55); } }
+
+        .login-card {
+            position: relative;
+            width: 800px;
+            height: 380px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding-left: 50px;
+            background: transparent;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .login-card .circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .login-card .circle::before {
+            content: '';
+            position: absolute;
+            width: 220px; 
+            height: 220px;
+            background: transparent;
+            border: 5px solid var(--clr);
+            box-shadow: 0 0 20px rgba(26, 79, 156, 0.3);
+            border-radius: 50%;
+            transition: 0.5s ease-in-out;
+        }
+
+        .login-card .circle .logo_img {
+            max-width: 180px;
+            z-index: 12;
+            transition: 0.4s ease-in-out;
+        }
+
+        .login-card:hover .circle::before {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            background: var(--clr);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            border: 0px solid transparent;
+        }
+
+        .login-card:hover .circle .logo_img {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+
+        .login-card .content {
+            position: relative;
+            z-index: 10;
+            max-width: 420px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-50px);
+            transition: 0.5s ease-in-out;
+        }
+
+        .login-card:hover .content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            transition-delay: 0.3s;
+        }
+
+        .login-card .content h2 {
+            color: #fff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            line-height: 1.1em;
+            margin-bottom: 12px;
+            white-space: nowrap;
+        }
+
+        .login-card .content p {
+            color: #fff;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            opacity: 0.95;
+            line-height: 1.5; 
+        }
+
+        .login-card .content p strong {
+            color: #ffcccc; 
+        }
+
+        .login-card .content button {
+            display: inline-block;
+            padding: 10px 25px;
+            background: #b92025; 
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: 0.3s ease;
+        }
+
+        .login-card .content button:hover {
+            transform: scale(1.05);
+            background: #96171b;
+        }
+
+        .login-card .factory_img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 320px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 4px solid #fff; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 11;
+            transition: 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
+        }
+
+        .login-card:hover .factory_img {
+            top: 50%;
+            left: 75%;
+            transform: translate(-50%, -50%) scale(1);
+            transition-delay: 0.2s;
         }
 
         /* Ambient Background Animations (The Gemini Glow Effect) */
@@ -525,6 +692,7 @@
         @media print {
             body { background: white; padding: 0; overflow: visible; }
             .ambient-blob { display: none; }
+            #login-overlay { display: none !important; }
             .container { box-shadow: none; border: none; padding: 0; max-width: 100%; filter: none; border-radius: 0; }
             .controls, #loader, .summary-grid, .data-info, .container > h1, .license, .modal-overlay { display: none; }
             
@@ -551,6 +719,32 @@
 </head>
 <body>
 
+<div id="login-overlay">
+    <div class="login-wrapper">
+        <div class="login-card" style="--clr: #124388;">
+            <div class="circle">
+                <img src="MSB Logo.png" class="logo_img" alt="Logo PT Murinda" onerror="this.src='https://via.placeholder.com/180x80?text=Logo+MSB'">
+            </div>
+            
+            <div class="content">
+                <h2>PT MURINDA SENTRA BAJA</h2>
+                <p>
+                    Jl. Raya Kalijati Purwadadi No. 123A RT 006/02<br>
+                    Desa Kalijati Barat, Kecamatan Kalijati<br>
+                    Kabupaten Subang, West Java 41271 <br>
+                    (Exit Toll Gate Kalijati)<br><br>
+                    <strong>Phone :</strong> (+62260) 7495467<br>
+                    <strong>Fax :</strong> (+62260) 7495222<br>
+                    <strong>E-mail :</strong> plant@murinda.com
+                </p>
+                <button onclick="enterSystem()">LOGIN SISTEM</button>
+            </div>
+
+            <img src="Plant MSB.jpg" class="factory_img" alt="Plant PT Murinda" onerror="this.src='https://via.placeholder.com/320x200?text=Pabrik+MSB'">
+        </div>
+    </div>
+</div>
+
 <div class="ambient-blob blob-1"></div>
 <div class="ambient-blob blob-2"></div>
 <div class="ambient-blob blob-3"></div>
@@ -570,17 +764,17 @@
     <div class="summary-grid">
         <div class="summary-card card-danger" id="summaryBoxMinus">
             <h3>⚠️ Ringkasan Material Kurang / Minus (-)</h3>
-            <div id="minusContent" style="font-size:15px; color:#334155; font-weight: 500;">Memuat data kekurangan...</div>
+            <div id="minusContent" style="font-size:15px; color:#334155; font-weight: 500;">Menunggu Autentikasi...</div>
         </div>
         <div class="summary-card card-success" id="summaryBoxPerf">
             <h3>📈 Persentase Pemenuhan Material Keseluruhan</h3>
-            <div id="perfContent" style="font-weight: 500;">Memuat data performa...</div>
+            <div id="perfContent" style="font-weight: 500;">Menunggu Autentikasi...</div>
         </div>
     </div>
 
     <div class="controls">
         <div class="filters">
-            <select id="materialFilter" onchange="renderTable()"><option>Loading Nama Material...</option></select>
+            <select id="materialFilter" onchange="renderTable()"><option>Menunggu Autentikasi...</option></select>
         </div>
         <div class="actions">
             <button class="btn-detail" onclick="openDetailSPP()">📋 Detail SPP</button>
@@ -624,10 +818,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg0k2l84kZAwoxDMvyn
 let allData = [];
 let headers = [];
 
-document.addEventListener("DOMContentLoaded", () => {
-    fetchData();
-});
-
 // Fungsi Navigasi Jendela Modal Terintegrasi
 function openDetailSPP() {
     document.getElementById('detailModal').classList.add('active');
@@ -637,6 +827,20 @@ function openDetailSPP() {
 function closeDetailSPP() {
     document.getElementById('detailModal').classList.remove('active');
     document.body.style.overflow = 'auto'; // Mengaktifkan kembali scroll background dashboard
+}
+
+// LOGIKA LOGIN SYSTEM
+function enterSystem() {
+    const overlay = document.getElementById('login-overlay');
+    overlay.style.opacity = '0';
+    overlay.style.visibility = 'hidden';
+    
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+    }, 500); 
+    
+    // Panggil fetchData pertama kali saat tombol login ditekan
+    fetchData();
 }
 
 // Menghilangkan Nilai Koma desimal (Format Angka Utuh)
