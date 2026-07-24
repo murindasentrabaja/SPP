@@ -341,50 +341,6 @@
         }
 
         /* ==========================================
-           SAFETY MARQUEE (PENGUMUMAN LOKAL)
-           ========================================== */
-        .safety-marquee {
-            background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02));
-            border-left: 4px solid var(--status-danger);
-            border-right: 4px solid var(--status-danger);
-            padding: 10px 15px;
-            border-radius: 12px;
-            margin-bottom: 35px;
-            display: flex;
-            align-items: center;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-            backdrop-filter: blur(5px);
-        }
-        
-        .safety-marquee .marquee-label {
-            font-weight: 800;
-            color: var(--status-danger);
-            margin-right: 15px;
-            white-space: nowrap;
-            font-size: 14px;
-        }
-
-        .marquee-content {
-            flex-grow: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .marquee-text {
-            display: inline-block;
-            white-space: nowrap;
-            animation: scrollText 25s linear infinite;
-            color: var(--text-main);
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        @keyframes scrollText {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        /* ==========================================
            GRID BLOK RINGKASAN & PERSENTASE
            ========================================== */
         .summary-grid {
@@ -801,7 +757,7 @@
             .ambient-blob { display: none; }
             #login-overlay { display: none !important; }
             .container { box-shadow: none; border: none; padding: 0; max-width: 100%; filter: none; border-radius: 0; background: transparent; }
-            .controls, #loader, .summary-grid, .data-info, .container > h1, .license, .modal-overlay, .glass-hover-fx::after, .safety-marquee { display: none; }
+            .controls, #loader, .summary-grid, .data-info, .container > h1, .license, .modal-overlay, .glass-hover-fx::after { display: none; }
             
             #printHeader {
                 display: block;
@@ -868,9 +824,6 @@
 
     <h1>Surat Permintaan Pengadaan (SPP) Monitoring System</h1>
     
-        </div>
-    </div>
-
     <div class="summary-grid">
         <div class="summary-card card-danger glass-hover-fx" id="summaryBoxMinus">
             <h3>⚠️ Ringkasan Material Kurang / Minus (-)</h3>
