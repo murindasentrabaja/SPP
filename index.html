@@ -109,7 +109,7 @@
             position: absolute;
             inset: 0;
             border-radius: inherit;
-            padding: 3px; /* Ketebalan batas garis (border) */
+            padding: 3px; 
             background: linear-gradient(90deg, var(--liquid-blue), var(--liquid-purple), var(--liquid-pink), var(--liquid-blue));
             background-size: 300% 100%;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -187,7 +187,6 @@
             pointer-events: none;
         }
 
-        /* 3D Liquid Orb di Layar Login */
         .login-card .circle::before {
             content: '';
             position: absolute;
@@ -334,11 +333,55 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-top: 0;
-            margin-bottom: 35px;
+            margin-bottom: 20px;
             letter-spacing: 1px;
             font-weight: 800;
             font-size: 34px;
             text-shadow: 0 4px 15px rgba(255, 255, 255, 0.6);
+        }
+
+        /* ==========================================
+           SAFETY MARQUEE (PENGUMUMAN LOKAL)
+           ========================================== */
+        .safety-marquee {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02));
+            border-left: 4px solid var(--status-danger);
+            border-right: 4px solid var(--status-danger);
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            display: flex;
+            align-items: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            backdrop-filter: blur(5px);
+        }
+        
+        .safety-marquee .marquee-label {
+            font-weight: 800;
+            color: var(--status-danger);
+            margin-right: 15px;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        .marquee-content {
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .marquee-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollText 25s linear infinite;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        @keyframes scrollText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
 
         /* ==========================================
@@ -371,7 +414,6 @@
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
         }
 
-        /* Garis indikator pinggir diubah menjadi elemen 3D bulat */
         .summary-card::before {
             content: '';
             position: absolute;
@@ -505,7 +547,6 @@
         }
         button:active { transform: translateY(1px); }
         
-        /* Pewarnaan Button Kalem namun Jelas */
         .btn-detail { background: linear-gradient(135deg, #fb7185, #f43f5e); }
         .btn-refresh { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
         .btn-print { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
@@ -525,7 +566,6 @@
             backdrop-filter: blur(20px);
         }
         
-        /* Custom 3D Scrollbar */
         .table-wrapper::-webkit-scrollbar { width: 12px; height: 12px; }
         .table-wrapper::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.5); }
         .table-wrapper::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--liquid-blue), var(--liquid-purple)); border-radius: 12px; border: 2px solid rgba(255,255,255,0.6); }
@@ -560,7 +600,6 @@
             border-bottom: 2px solid rgba(255, 255, 255, 0.8);
         }
 
-        /* Tabel Interaktif */
         tbody tr { 
             background: transparent; 
             cursor: pointer; 
@@ -570,7 +609,6 @@
             background: rgba(255, 255, 255, 0.5) !important; 
         }
         
-        /* Baris yang diklik/dipilih - Efek 3D */
         tbody tr.selected-row td {
             background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5)) !important;
             border-top: 1px solid rgba(255, 255, 255, 0.9);
@@ -584,7 +622,6 @@
 
         td:nth-child(2) { text-align: left; font-weight: 600; }
 
-        /* BADGES (Soft Pastel & Glassy) */
         .badge {
             padding: 8px 12px;
             border-radius: 10px;
@@ -657,6 +694,13 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .license em {
+            color: #64748b;
+            font-style: italic;
+            font-size: 12px;
         }
 
         #printHeader { display: none; }
@@ -757,7 +801,7 @@
             .ambient-blob { display: none; }
             #login-overlay { display: none !important; }
             .container { box-shadow: none; border: none; padding: 0; max-width: 100%; filter: none; border-radius: 0; background: transparent; }
-            .controls, #loader, .summary-grid, .data-info, .container > h1, .license, .modal-overlay, .glass-hover-fx::after { display: none; }
+            .controls, #loader, .summary-grid, .data-info, .container > h1, .license, .modal-overlay, .glass-hover-fx::after, .safety-marquee { display: none; }
             
             #printHeader {
                 display: block;
@@ -783,7 +827,6 @@
 <body>
 
 <div id="login-overlay">
-    <!-- Blobs can be seen through the overlay blur -->
     <div class="login-wrapper">
         <div class="login-card glass-hover-fx">
             <div class="circle">
@@ -825,6 +868,15 @@
 
     <h1>Surat Permintaan Pengadaan (SPP) Monitoring System</h1>
     
+    <div class="safety-marquee glass-hover-fx">
+        <span class="marquee-label">⚠️ HSE INFO:</span>
+        <div class="marquee-content">
+            <div class="marquee-text">
+                Utamakan Keselamatan Kerja! Pastikan inspeksi rutin alat berat dan jadwal servicing Forklift ditaati | Gunakan Wearpack standar NDT dan APD lengkap saat berada di area pengelasan baja.
+            </div>
+        </div>
+    </div>
+
     <div class="summary-grid">
         <div class="summary-card card-danger glass-hover-fx" id="summaryBoxMinus">
             <h3>⚠️ Ringkasan Material Kurang / Minus (-)</h3>
@@ -861,7 +913,8 @@
 
     <div class="license">
         PT Murinda Sentra Baja - Kalijati, Subang<br>
-        <strong>Develop by Aspuro Amarulloh Khoiri</strong>
+        <strong>Develop by Aspuro Amarulloh Khoiri</strong><br>
+        <em>"Transforming Manual Workflows into Digital Excellence"</em>
     </div>
 </div>
 
@@ -876,24 +929,21 @@
 </div>
 
 <script>
-// API URL Hasil Deploy dari Google Apps Script
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyg0k2l84kZAwoxDMvynklGAeHX2Ncxf_D_UHDMMRPpgCG8vOjHM4TWoxs9KYZaHsuN/exec"; 
 
 let allData = [];
 let headers = [];
 
-// Fungsi Navigasi Jendela Modal Terintegrasi
 function openDetailSPP() {
     document.getElementById('detailModal').classList.add('active');
-    document.body.style.overflow = 'hidden'; // Mengunci scroll background dashboard utama
+    document.body.style.overflow = 'hidden'; 
 }
 
 function closeDetailSPP() {
     document.getElementById('detailModal').classList.remove('active');
-    document.body.style.overflow = 'auto'; // Mengaktifkan kembali scroll background dashboard
+    document.body.style.overflow = 'auto'; 
 }
 
-// LOGIKA LOGIN SYSTEM
 function enterSystem() {
     const overlay = document.getElementById('login-overlay');
     overlay.style.opacity = '0';
@@ -903,11 +953,9 @@ function enterSystem() {
         overlay.classList.add('hidden');
     }, 600); 
     
-    // Panggil fetchData pertama kali saat tombol login ditekan
     fetchData();
 }
 
-// Menghilangkan Nilai Koma desimal (Format Angka Utuh)
 function formatWholeNumber(val) {
     if (val === "" || val === null || val === undefined) return 0;
     let num = Number(val);
@@ -967,7 +1015,6 @@ function populateMaterialFilter() {
     renderTable(); 
 }
 
-// PERHITUNGAN UTAMA DASHBOARD METRICS: MATERIAL MINUS & PERSENTASE PEMENUHAN GLOBAL
 function calculateDashboardMetrics() {
     const materialIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
     const sppTotalIdx = headers.findIndex(h => h.toString().toLowerCase().trim() === 'spp total');
@@ -987,15 +1034,13 @@ function calculateDashboardMetrics() {
         let sppQty = formatWholeNumber(row[sppTotalIdx]);
         let datangQty = formatWholeNumber(row[kedatanganIdx]);
 
-        let sisa = datangQty - sppQty; // Jika kedatangan < spp total, bernilai minus (-)
+        let sisa = datangQty - sppQty; 
 
         if (matName) {
-            // Akumulasi Kekurangan Material
             if (sisa < 0) {
                 minusMap[matName] = (minusMap[matName] || 0) + sisa;
             }
 
-            // Batasi nilai kedatangan efektif agar surplus di satu material tidak memanipulasi minus di material lain
             let effectiveDatang = datangQty > sppQty ? sppQty : datangQty;
             
             totalSppGlobal += sppQty;
@@ -1003,7 +1048,6 @@ function calculateDashboardMetrics() {
         }
     });
 
-    // Render Box Material Minus (-)
     const minusContent = document.getElementById('minusContent');
     if (Object.keys(minusMap).length === 0) {
         minusContent.innerHTML = "<p style='color:#059669; margin:0;'>✨ Semua material telah terpenuhi sempurna (Tidak ada minus).</p>";
@@ -1016,10 +1060,18 @@ function calculateDashboardMetrics() {
         minusContent.innerHTML = htmlMinus;
     }
 
-    // Render Box Persentase Pemenuhan Global (Keseluruhan)
+    // LOGIKA PERBAIKAN PERSENTASE:
     const perfContent = document.getElementById('perfContent');
-    let pct = totalSppGlobal > 0 ? Math.round((totalDatangGlobal / totalSppGlobal) * 100) : 0;
-    if (pct > 100) pct = 100;
+    let pct = totalSppGlobal > 0 ? (totalDatangGlobal / totalSppGlobal) * 100 : 0;
+    
+    // Jika array minusMap memiliki isi (ada material kurang), persentase tidak boleh mencapai 100%
+    if (Object.keys(minusMap).length > 0) {
+        pct = Math.floor(pct); // Membulatkan ke bawah
+        if (pct >= 100) pct = 99; // Tetap mentok di 99% agar informatif
+    } else {
+        pct = Math.round(pct); // Membulatkan normal jika memang sudah terkirim full
+        if (pct > 100) pct = 100;
+    }
 
     perfContent.innerHTML = `
         <div class="perf-item">
@@ -1051,7 +1103,6 @@ function renderTable() {
     tbody.innerHTML = '';
     thead.innerHTML = '';
     
-    // Setup Header Struktur Datar (Flat)
     let trHead = document.createElement('tr');
     headers.forEach(h => {
         let th = document.createElement('th');
@@ -1078,7 +1129,6 @@ function renderTable() {
     filteredData.forEach(row => {
         let tr = document.createElement('tr');
 
-        // Fungsi klik baris tabel untuk memberikan efek highlight visual yang dinamis
         tr.addEventListener('click', function() {
             document.querySelectorAll('#dataTable tbody tr').forEach(r => r.classList.remove('selected-row'));
             this.classList.add('selected-row');
@@ -1101,7 +1151,6 @@ function renderTable() {
                 if (cellValue === 0 || cellValue === '0') cellValue = '-';
             }
             
-            // Tambahkan tanda pengenal visual pada baris kolom kedatangan / material yang minus
             if (statusMinus && (hLower === 'kedatangan' || hLower === 'nama material')) {
                 let badgeClass = (hLower === 'kedatangan' && cellValue !== '-') ? 'badge badge-danger' : (cellValue === '-' ? 'badge' : '');
                 let prefix = hLower === 'nama material' ? '⚠️ ' : '';
