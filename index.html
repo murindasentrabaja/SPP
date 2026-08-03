@@ -8,6 +8,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
 
+        * {
+            box-sizing: border-box; /* Memastikan padding tidak merusak tata letak grid dan lebar elemen */
+        }
+
         :root {
             /* Calm Pastel Colors */
             --bg-base: #e6eef5;
@@ -149,15 +153,16 @@
         }
 
         .login-wrapper {
-            transform: scale(1);
+            width: 100%;
+            display: flex;
+            justify-content: center;
             transition: transform 0.4s ease;
         }
-        @media (max-width: 768px) { .login-wrapper { transform: scale(0.8); } }
-        @media (max-width: 500px) { .login-wrapper { transform: scale(0.55); } }
 
         .login-card {
             position: relative;
-            width: 800px;
+            width: 100%;
+            max-width: 800px;
             height: 380px;
             display: flex;
             align-items: center;
@@ -348,10 +353,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 28px;
             margin-bottom: 35px;
-        }
-
-        @media (max-width: 992px) {
-            .summary-grid { grid-template-columns: 1fr; }
         }
 
         .summary-card {
@@ -747,6 +748,84 @@
             width: 100%;
             height: 100%;
             background: rgba(255,255,255,0.7);
+        }
+
+        /* ==========================================
+           RESPONSIVE & MOBILE OPTIMIZATIONS (ADDED)
+           ========================================== */
+        @media (max-width: 992px) {
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 15px; }
+            .container { padding: 20px; border-radius: 20px; }
+            h1 { font-size: 24px; margin-bottom: 15px; }
+            
+            /* Login screen mobile fix */
+            .login-wrapper { padding: 15px; }
+            .login-card {
+                flex-direction: column;
+                padding: 30px 20px;
+                text-align: center;
+                justify-content: center;
+                height: auto;
+            }
+            .login-card .circle { 
+                position: relative; 
+                height: 160px; 
+                margin-bottom: 20px;
+            }
+            .login-card .circle::before { width: 160px; height: 160px; }
+            .login-card .circle .logo_img { max-width: 130px; }
+            .login-card .content { 
+                opacity: 1; 
+                visibility: visible; 
+                transform: translateX(0); 
+                max-width: 100%; 
+            }
+            .login-card .factory_img { display: none; }
+            .login-card:hover .circle::before { width: 160px; height: 160px; border-radius: 50%; } 
+            .login-card:hover .circle .logo_img { opacity: 1; transform: scale(1); }
+            
+            /* Dashboard Controls & Grid Mobile Fix */
+            .controls { 
+                flex-direction: column; 
+                padding: 15px; 
+                gap: 15px; 
+            }
+            .filters { width: 100%; }
+            .filters select { width: 100%; min-width: 100%; }
+            .actions { 
+                display: grid; 
+                grid-template-columns: 1fr 1fr; 
+                gap: 10px; 
+                width: 100%; 
+            }
+            .actions button { 
+                width: 100%; 
+                padding: 12px 10px; 
+                font-size: 13px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+            }
+            
+            /* Table Mobile Fix */
+            .table-wrapper { max-height: 450px; }
+            th, td { padding: 10px; font-size: 12px; }
+            
+            .data-info { width: 100%; justify-content: center; text-align: center; }
+        }
+
+        @media (max-width: 480px) {
+            .actions { grid-template-columns: 1fr; }
+            h1 { font-size: 20px; }
+            .summary-card { padding: 20px; }
+            .summary-card h3 { font-size: 15px; }
+            .modal-content { width: 95%; height: 90vh; }
+            .login-card .circle::before { width: 140px; height: 140px; }
+            .login-card .circle .logo_img { max-width: 110px; }
         }
 
         /* ==========================================
