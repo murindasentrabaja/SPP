@@ -11,7 +11,7 @@
         * { box-sizing: border-box; }
 
         :root {
-            var(--bg-base): #e6eef5;
+            --bg-base: #e6eef5;
             --liquid-blue: #8bb8f8;
             --liquid-purple: #c5a6fc;
             --liquid-pink: #f6b5cc;
@@ -58,23 +58,11 @@
         .glass-hover-fx:hover::after { opacity: 1; animation: borderGlow 3s linear infinite; }
         @keyframes borderGlow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-        /* Login Screen */
-        #login-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(230, 238, 245, 0.4); backdrop-filter: blur(15px); transition: opacity 0.6s ease-out, visibility 0.6s ease-out; }
-        #login-overlay.hidden { display: none; }
-        .login-wrapper { width: 100%; display: flex; justify-content: center; }
-        .login-card { position: relative; width: 100%; max-width: 800px; height: 380px; display: flex; align-items: center; justify-content: flex-start; padding-left: 50px; background: var(--glass-card); backdrop-filter: blur(20px); border-radius: 30px; box-shadow: var(--glass-shadow); font-family: 'Poppins', sans-serif; border: 1px solid rgba(255, 255, 255, 0.6); transition: all 0.5s ease; }
-        .login-card:hover { box-shadow: var(--glass-shadow-hover); transform: translateY(-5px); }
-        .login-card .circle { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 1; pointer-events: none; }
-        .login-card .circle::before { content: ''; position: absolute; width: 220px; height: 220px; background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.05)); box-shadow: inset 0 0 20px rgba(255,255,255,0.8), inset 10px 0 40px rgba(139, 184, 248, 0.5), 0 20px 40px rgba(0,0,0,0.1); backdrop-filter: blur(10px); border-radius: 50%; border: 1px solid rgba(255,255,255,0.5); transition: 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
-        .login-card .circle .logo_img { max-width: 180px; z-index: 12; transition: 0.5s ease-in-out; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1)); }
-        .login-card:hover .circle::before { width: 100%; height: 100%; border-radius: 30px; background: linear-gradient(135deg, rgba(139, 184, 248, 0.8), rgba(197, 166, 252, 0.8)); }
-        .login-card:hover .circle .logo_img { opacity: 0; transform: scale(0.5); }
-        .login-card .content { position: relative; z-index: 10; max-width: 420px; opacity: 0; visibility: hidden; transform: translateX(-50px); transition: 0.5s ease-in-out; }
-        .login-card:hover .content { opacity: 1; visibility: visible; transform: translateX(0); transition-delay: 0.2s; }
-        .login-card .content h2 { color: #fff; font-size: 1.8rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 12px; }
-        .login-card .content p { color: #f8fafc; font-size: 0.85rem; margin-bottom: 25px; line-height: 1.6; text-shadow: 0 1px 5px rgba(0,0,0,0.2); }
-        .login-card .content button { padding: 12px 30px; background: rgba(255,255,255,0.2); color: #fff; font-weight: 700; border: 1px solid rgba(255,255,255,0.6); cursor: pointer; border-radius: 30px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), 0 10px 20px rgba(0,0,0,0.15); transition: 0.3s ease; }
-        .login-card .content button:hover { transform: translateY(-3px); background: rgba(255,255,255,0.3); }
+        /* Form login & input */
+        .form-grid input, .form-grid select { width: 100%; min-width: 0; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.8); border-radius: 14px; background-color: rgba(255,255,255,0.6); font: 600 14px 'Plus Jakarta Sans', sans-serif; color: var(--text-main); }
+        .form-grid label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
+        .form-grid input[readonly] { opacity: 0.7; }
+        .btn-edit { padding: 6px 12px; font-size: 12px; color: var(--text-main); background: rgba(255,255,255,0.6); }
 
         /* Container & Layout */
         .container { max-width: 1500px; margin: 0 auto; background: var(--glass-bg); backdrop-filter: blur(30px) saturate(120%); -webkit-backdrop-filter: blur(30px) saturate(120%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 40px; box-shadow: var(--glass-shadow); flex-grow: 1; display: flex; flex-direction: column; position: relative; z-index: 1; animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -152,6 +140,34 @@
         .license strong { background: linear-gradient(135deg, var(--liquid-blue), var(--liquid-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
         .license em { color: #64748b; font-size: 12px; }
 
+        /* View tabs, summary client & accordion */
+        .view-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+        .view-tab { color: var(--text-main); background: rgba(255,255,255,0.45); }
+        .view-tab.active { color: #fff; background: linear-gradient(135deg, #60a5fa, #8b5cf6); }
+        .client-grid { display: none; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 30px; }
+        .client-card h3 { margin: 0 0 4px; font-size: 20px; }
+        .client-card small { color: var(--text-muted); font-weight: 600; }
+        .client-komatsu::before { background: linear-gradient(to bottom, #60a5fa, #3b82f6); }
+        .client-sumitomo::before { background: linear-gradient(to bottom, #fbbf24, #f59e0b); }
+        .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0; }
+        .stat-row div { background: rgba(255,255,255,0.45); border-radius: 14px; padding: 10px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+        .stat-row b { display: block; font-size: 20px; color: var(--text-main); }
+        .grouped { display: none; }
+        .client-title { margin: 26px 0 12px; font-size: 20px; font-weight: 800; }
+        details.acc { margin-bottom: 12px; background: var(--glass-card); border: 1px solid rgba(255,255,255,0.7); border-radius: 18px; box-shadow: var(--glass-shadow); overflow: hidden; }
+        details.acc > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 20px; font-weight: 800; }
+        details.acc > summary::-webkit-details-marker { display: none; }
+        details.acc > summary::before { content: '▶'; font-size: 12px; color: var(--liquid-purple); transition: transform 0.3s; }
+        details.acc[open] > summary::before { transform: rotate(90deg); color: var(--liquid-blue); }
+        details.acc > summary:hover { background: rgba(255,255,255,0.5); }
+        .acc-meta { margin-left: auto; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
+        .acc-body { padding: 0 14px 14px; overflow-x: auto; }
+        details.acc details.acc { box-shadow: none; margin: 10px 0 0; background: rgba(255,255,255,0.3); }
+        .mini-bar { width: 120px; height: 10px; }
+        .nested-table td, .nested-table th { white-space: nowrap; text-align: center; }
+        tr.total-row td { font-weight: 800; background: rgba(255,255,255,0.55); }
+        @media (max-width: 900px) { .client-grid, .summary-grid { grid-template-columns: 1fr; } .stat-row { grid-template-columns: repeat(2, 1fr); } body { padding: 12px; } .container { padding: 20px; } }
+
         /* Modals & Prints omitted for brevity (sama seperti sebelumnya) */
         .modal-overlay { position: fixed; inset: 0; background: rgba(230, 238, 245, 0.4); backdrop-filter: blur(15px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -177,25 +193,6 @@
 </head>
 <body>
 
-<div id="login-overlay">
-    <div class="login-wrapper">
-        <div class="login-card glass-hover-fx">
-            <div class="circle">
-                <img src="MSB Logo.png" class="logo_img" alt="Logo PT Murinda" onerror="this.src='https://via.placeholder.com/180x80?text=Logo+MSB'">
-            </div>
-            <div class="content">
-                <h2>PT MURINDA SENTRA BAJA</h2>
-                <p>
-                    Jl. Raya Kalijati Purwadadi No. 123A RT 006/02<br>
-                    Desa Kalijati Barat, Kab. Subang 41271<br>
-                    <strong>Phone :</strong> (+62260) 7495467
-                </p>
-                <button class="glass-hover-fx" onclick="enterSystem()">LOGIN SISTEM</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="ambient-blob blob-1"></div>
 <div class="ambient-blob blob-2"></div>
 <div class="ambient-blob blob-3"></div>
@@ -209,6 +206,13 @@
     </div>
 
     <h1 id="pageTitle">Surat Permintaan Pengadaan (SPP) Monitoring System</h1>
+
+    <div class="view-tabs" id="viewTabs">
+        <button class="view-tab active" data-view="APK" onclick="setView('APK')">📋 Monitoring SPP</button>
+        <button class="view-tab" data-view="SUMMARY" onclick="setView('SUMMARY')">🏭 Summary Client &amp; Periode</button>
+        <button class="view-tab" data-view="KEDATANGAN" onclick="setView('KEDATANGAN')">📦 Kedatangan Material</button>
+        <button class="view-tab" data-view="BON" onclick="setView('BON')">🧾 Bon Material</button>
+    </div>
     
     <div class="summary-grid" id="summaryGrid">
         <div class="summary-card card-danger glass-hover-fx" id="summaryBoxMinus">
@@ -221,13 +225,22 @@
         </div>
     </div>
 
+    <div class="client-grid" id="clientGrid"></div>
+
     <div class="controls glass-hover-fx">
         <div class="filters">
             <select class="glass-hover-fx" id="materialFilter" onchange="renderTable()"><option>Menunggu Autentikasi...</option></select>
+            <select class="glass-hover-fx" id="clientFilter" style="display:none" onchange="renderTable()"></select>
+            <select class="glass-hover-fx" id="periodeFilter" style="display:none" onchange="renderTable()"></select>
         </div>
         <div class="actions">
             <!-- Tombol Switch View -->
-            <button class="btn-switch glass-hover-fx" id="btnSwitchView" onclick="switchView()">📦 View Kedatangan Material</button>
+            <button class="btn-switch glass-hover-fx" id="btnExpand" style="display:none" onclick="toggleAll(true)">⬇️ Buka Semua</button>
+            <button class="btn-switch glass-hover-fx" id="btnCollapse" style="display:none" onclick="toggleAll(false)">⬆️ Tutup Semua</button>
+            <button class="btn-export glass-hover-fx" id="btnAdd" style="display:none" onclick="openForm()">➕ Tambah Data</button>
+            <button class="btn-switch glass-hover-fx" id="btnShowLogin" onclick="openLogin()">🔐 Login</button>
+            <span class="badge badge-success" id="userChip" style="display:none"></span>
+            <button class="btn-detail glass-hover-fx" id="btnLogout" style="display:none" onclick="doLogout()">🚪 Keluar</button>
             <button class="btn-detail glass-hover-fx" id="btnDetail" onclick="openDetailSPP()">📋 Detail SPP</button>
             <button class="btn-refresh glass-hover-fx" onclick="fetchData()">🍃 Sinkronisasi Data</button>
             <button class="btn-export glass-hover-fx" onclick="exportExcel()">📊 Export Excel</button>
@@ -243,12 +256,41 @@
         </table>
     </div>
 
+    <div class="grouped" id="groupedView"></div>
+
     <div class="data-info glass-hover-fx" id="dataInfo">Menampilkan 0 dari 0 baris data keseluruhan.</div>
 
     <div class="license">
         PT Murinda Sentra Baja - Kalijati, Subang<br>
         <strong>Develop by Aspuro Amarulloh Khoiri</strong><br>
         <em>"Transforming Manual Workflows into Digital Excellence"</em>
+    </div>
+</div>
+
+<div id="loginModal" class="modal-overlay">
+    <div class="modal-content" style="max-width:420px;height:auto">
+        <div class="modal-header"><h2>🔐 Login untuk Edit Data</h2><button class="btn-close" onclick="closeLogin()">&times;</button></div>
+        <div class="form-grid" style="padding:24px;display:grid;gap:14px">
+            <label>Username<select id="loginUser"></select></label>
+            <label>Password<input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></label>
+        </div>
+        <div style="padding:0 24px 24px;display:flex;gap:12px;align-items:center;justify-content:flex-end">
+            <span id="loginError" style="color:#ef4444;font-weight:700;font-size:13px;margin-right:auto"></span>
+            <button class="btn-detail" onclick="closeLogin()">Batal</button>
+            <button class="btn-export" id="btnLogin" onclick="doLogin()">Masuk</button>
+        </div>
+    </div>
+</div>
+
+<div id="formModal" class="modal-overlay">
+    <div class="modal-content" style="max-width:560px;height:auto;max-height:90vh;overflow:auto">
+        <div class="modal-header"><h2 id="formTitle"></h2><button class="btn-close" onclick="closeForm()">&times;</button></div>
+        <div class="form-grid" id="formBody" style="padding:24px;display:grid;gap:14px"></div>
+        <div style="padding:0 24px 24px;display:flex;gap:12px;justify-content:flex-end;align-items:center">
+            <span id="formError" style="color:#ef4444;font-weight:700;font-size:13px;margin-right:auto"></span>
+            <button class="btn-detail" onclick="closeForm()">Batal</button>
+            <button class="btn-export" id="btnSave" onclick="saveForm()">💾 Simpan</button>
+        </div>
     </div>
 </div>
 
@@ -266,17 +308,51 @@
 // --- PASTIKAN MENGGANTI URL INI DENGAN URL DEPLOYMENT BARU ANDA ---
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzObewtFTwmUtPf9zWHW8St-G2Hu6g-hq2-MFB7W2lAlMw8rtnCTlfMk2_Au0v6C7-w/exec"; 
 
-let currentView = 'APK'; // Bisa 'APK' atau 'KEDATANGAN'
+let currentView = 'APK'; // 'APK' | 'SUMMARY' | 'KEDATANGAN' | 'BON'
+let matData = [], matHeaders = [], bonData = [], bonHeaders = [];
 let apkData = [], apkHeaders = [];
 let kedData = [], kedHeaders = [];
 
-function enterSystem() {
-    const overlay = document.getElementById('login-overlay');
-    overlay.style.opacity = '0';
-    overlay.style.visibility = 'hidden';
-    setTimeout(() => { overlay.classList.add('hidden'); }, 600); 
-    fetchData();
+let session = null, formCtx = null, userList = [], afterLogin = null;
+
+function api(payload) {
+    return fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ...payload, username: session.u, password: session.p }) }).then(r => r.json());
 }
+
+function updateAuthUI() {
+    const on = !!session, chip = document.getElementById('userChip');
+    document.getElementById('btnShowLogin').style.display = on ? 'none' : '';
+    document.getElementById('btnLogout').style.display = on ? '' : 'none';
+    chip.style.display = on ? '' : 'none'; chip.textContent = on ? '👤 ' + session.name : '';
+}
+
+function openLogin(next) {
+    afterLogin = typeof next === 'function' ? next : null;
+    document.getElementById('loginUser').innerHTML = userList.length
+        ? userList.map(u => `<option value="${esc(u.u)}">${esc(u.n || u.u)}</option>`).join('')
+        : '<option value="">(sheet Login belum diisi)</option>';
+    document.getElementById('loginPass').value = ''; document.getElementById('loginError').textContent = '';
+    document.getElementById('loginModal').classList.add('active');
+    setTimeout(() => document.getElementById('loginPass').focus(), 100);
+}
+function closeLogin() { document.getElementById('loginModal').classList.remove('active'); afterLogin = null; }
+
+async function doLogin() {
+    const err = document.getElementById('loginError'), btn = document.getElementById('btnLogin');
+    const u = val('loginUser'), p = val('loginPass');
+    if (!u || !p) { err.textContent = 'Pilih username dan isi password.'; return; }
+    btn.disabled = true; err.textContent = ''; session = { u, p };
+    try {
+        const r = await api({ action: 'login' });
+        if (r.error) { session = null; err.textContent = r.error; return; }
+        session.name = r.user || u;
+        const next = afterLogin; closeLogin(); updateAuthUI(); renderTable();
+        if (next) next();
+    } catch (x) { session = null; err.textContent = 'Gagal terhubung ke server.'; }
+    finally { btn.disabled = false; }
+}
+function doLogout() { session = null; updateAuthUI(); renderTable(); }
 
 function openDetailSPP() { document.getElementById('detailModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
 function closeDetailSPP() { document.getElementById('detailModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
@@ -306,6 +382,7 @@ async function fetchData() {
         const response = await fetch(SCRIPT_URL);
         const result = await response.json();
         
+        
         if(result.error) { alert("Error: " + result.error); return; }
         
         // Simpan Data Terpisah
@@ -313,6 +390,11 @@ async function fetchData() {
         apkData = result.apk.data || [];
         kedHeaders = result.kedatangan.headers || [];
         kedData = result.kedatangan.data || [];
+        matHeaders = (result.material || {}).headers || [];
+        matData = (result.material || {}).data || [];
+        bonHeaders = (result.bon || {}).headers || [];
+        bonData = (result.bon || {}).data || [];
+        userList = result.users || [];
         
         populateMaterialFilter();
         if (currentView === 'APK') calculateDashboardMetrics();
@@ -325,59 +407,188 @@ async function fetchData() {
     }
 }
 
-// Fitur Ganti View (SPP vs Kedatangan)
-function switchView() {
-    const btn = document.getElementById('btnSwitchView');
-    const btnDetail = document.getElementById('btnDetail');
-    const title = document.getElementById('pageTitle');
-    const summaryGrid = document.getElementById('summaryGrid');
+// ---------------------------------------------------------
+// GANTI VIEW + FILTER
+// ---------------------------------------------------------
+const VIEW_TITLES = { APK: 'Surat Permintaan Pengadaan (SPP) Monitoring System', SUMMARY: 'Summary SPP per Client & Periode', KEDATANGAN: 'Data Kedatangan Material System', BON: 'Data Bon Material (Pengambilan Material)' };
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const norm = s => String(s == null ? '' : s).trim().toLowerCase();
+const val = id => document.getElementById(id).value;
+const isAll = v => !v || v.startsWith('Semua');
+const dash = n => n === 0 ? '-' : n;
+const sum = (a, k) => a.reduce((s, x) => s + x[k], 0);
+const periodeOrder = p => { const i = BULAN.findIndex(b => norm(p).startsWith(b.toLowerCase())); return i < 0 ? 99 : i; };
+const clientShort = c => /komatsu/i.test(c) ? 'Komatsu' : /sumitomo/i.test(c) ? 'Sumitomo' : (String(c || '').trim() || 'Tanpa Client');
+const clientRank = c => { const i = ['Komatsu', 'Sumitomo'].indexOf(c); return i < 0 ? 9 : i; };
+const noData = s => `<div class="data-info">Data sheet "${s}" belum diterima. Pastikan Code.gs terbaru sudah di-deploy ulang (Deploy → Kelola deployment → Versi baru).</div>`;
 
-    if (currentView === 'APK') {
-        currentView = 'KEDATANGAN';
-        btn.innerHTML = '📋 View Monitoring SPP';
-        title.textContent = 'Data Kedatangan Material System';
-        summaryGrid.style.display = 'none';
-        btnDetail.style.display = 'none';
-    } else {
-        currentView = 'APK';
-        btn.innerHTML = '📦 View Kedatangan Material';
-        title.textContent = 'Surat Permintaan Pengadaan (SPP) Monitoring System';
-        summaryGrid.style.display = 'grid';
-        btnDetail.style.display = 'block';
-        calculateDashboardMetrics();
-    }
-    
-    document.getElementById('materialFilter').value = 'Semua Material';
+function setView(v) {
+    currentView = v;
+    document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    document.getElementById('pageTitle').textContent = VIEW_TITLES[v];
+    const show = (id, on, d = '') => { document.getElementById(id).style.display = on ? d : 'none'; };
+    const grouped = v === 'SUMMARY' || v === 'BON';
+    show('summaryGrid', v === 'APK'); show('clientGrid', v === 'SUMMARY', 'grid');
+    show('btnDetail', v === 'APK'); show('btnAdd', v === 'KEDATANGAN' || v === 'BON');
+    show('clientFilter', v === 'SUMMARY'); show('periodeFilter', v === 'SUMMARY');
+    show('btnExpand', grouped); show('btnCollapse', grouped);
+    document.querySelector('.table-wrapper').style.display = grouped ? 'none' : '';
+    show('groupedView', grouped, 'block');
     populateMaterialFilter();
+    if (v === 'APK') calculateDashboardMetrics();
     renderTable();
 }
 
 function populateMaterialFilter() {
-    let materials = new Set();
-    if (currentView === 'APK') {
-        const materialIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
-        apkData.forEach(row => { if (materialIdx > -1 && row[materialIdx]) materials.add(row[materialIdx]); });
-    } else {
-        // Asumsi header kolom material di sheet kedatangan bernama "Material"
-        const materialIdx = kedHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'material');
-        kedData.forEach(row => { if (materialIdx > -1 && row[materialIdx]) materials.add(row[materialIdx]); });
+    const src = { APK: [apkHeaders, apkData, 'nama material'], SUMMARY: [matHeaders, matData, 'nama material'],
+                  KEDATANGAN: [kedHeaders, kedData, 'material'], BON: [bonHeaders, bonData, 'nama material'] }[currentView];
+    const idx = src[0].findIndex(h => norm(h) === src[2]);
+    const materials = new Set();
+    src[1].forEach(row => { if (idx > -1 && row[idx]) materials.add(row[idx]); });
+    fillSelect('materialFilter', 'Semua Material', Array.from(materials).sort());
+    if (currentView === 'SUMMARY') {
+        const lines = getSummaryLines();
+        fillSelect('clientFilter', 'Semua Client', [...new Set(lines.map(l => l.client))].sort((a, b) => clientRank(a) - clientRank(b)));
+        fillSelect('periodeFilter', 'Semua Periode', [...new Set(lines.map(l => l.periode))].sort((a, b) => periodeOrder(a) - periodeOrder(b)));
     }
-    
-    const selectElem = document.getElementById('materialFilter');
-    selectElem.innerHTML = '';
-    ['Semua Material', ...Array.from(materials).sort()].forEach(opt => {
-        const o = document.createElement('option'); o.value = opt; o.textContent = opt; selectElem.appendChild(o);
-    });
+}
+function fillSelect(id, label, vals) {
+    const s = document.getElementById(id); s.innerHTML = '';
+    [label, ...vals].forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; s.appendChild(o); });
 }
 
 function renderTable() {
-    if (currentView === 'APK') {
-        renderTableAPK();
-        setTimeout(() => { applySticky(); }, 50);
-    } else {
-        renderTableKedatangan();
-        // Sticky ditiadakan pada mode Accordion agar tabel inner tidak bergeser aneh
+    if (currentView === 'APK') { renderTableAPK(); setTimeout(() => { applySticky(); }, 50); }
+    else if (currentView === 'KEDATANGAN') renderTableKedatangan();
+    else if (currentView === 'SUMMARY') renderSummary();
+    else renderBon();
+}
+
+function toggleAll(open) { document.querySelectorAll('#groupedView details').forEach(d => { d.open = open; }); }
+
+// ---------------------------------------------------------
+// SUMMARY PER CLIENT & PERIODE (format kolom seperti sheet Data APK)
+// SPP per baris diambil dari sheet "Material". Sheet Kedatangan & Bon tidak
+// mencatat periode/client, jadi dialokasikan: periode terlama dipenuhi lebih dulu (FIFO).
+// ---------------------------------------------------------
+function getSummaryLines() {
+    const ix = k => matHeaders.findIndex(x => norm(x) === k);
+    const [iN, iId, iU, iQ, iS, iC, iP] = ['nama material', 'id material', 'ukuran', 'spp qty', 'satuan', 'client', 'spp periode'].map(ix);
+    const kN = kedHeaders.findIndex(x => norm(x) === 'material'), kQ = kedHeaders.findIndex(x => norm(x).includes('jumlah'));
+    const ked = {}, bon = {}, byMat = {};
+    kedData.forEach(r => { const k = norm(r[kN]); ked[k] = (ked[k] || 0) + formatWholeNumber(r[kQ]); });
+    bonData.forEach(r => { const k = norm(r[0]); bon[k] = (bon[k] || 0) + formatWholeNumber(r[3]); });
+    matData.forEach((r, i) => {
+        if (!r[iN]) return;
+        (byMat[norm(r[iN])] = byMat[norm(r[iN])] || []).push({ nama: r[iN], id: r[iId] || '', ukuran: r[iU] || '', satuan: r[iS] || '',
+            client: clientShort(r[iC]), clientFull: r[iC] || '', periode: String(r[iP] || 'Tanpa Periode').trim(), spp: formatWholeNumber(r[iQ]), datang: 0, bon: 0, _i: i });
+    });
+    const out = [];
+    for (const k in byMat) {
+        const ls = byMat[k].sort((a, b) => periodeOrder(a.periode) - periodeOrder(b.periode) || a._i - b._i);
+        let rd = ked[k] || 0, rb = bon[k] || 0;
+        const groups = {};
+        ls.forEach(l => { (groups[l.periode] = groups[l.periode] || []).push(l); });
+        Object.keys(groups).sort((a, b) => periodeOrder(a) - periodeOrder(b)).forEach(p => {
+            const g = groups[p], tot = sum(g, 'spp'), give = Math.min(rd, tot); let left = give;
+            g.forEach((l, i) => { l.datang = Math.min(l.spp, i === g.length - 1 ? left : Math.round(give * l.spp / (tot || 1))); left -= l.datang; });
+            rd -= sum(g, 'datang');
+        });
+        if (rd > 0) ls[ls.length - 1].datang += rd;
+        ls.forEach(l => { l.bon = Math.min(rb, l.datang); rb -= l.bon; });
+        if (rb > 0) ls[ls.length - 1].bon += rb;
+        ls.forEach(l => { l.stock = l.datang - l.bon; l.sisa = l.spp - l.datang; });
+        out.push(...ls);
     }
+    return out;
+}
+
+function filteredSummary() {
+    const m = val('materialFilter'), c = val('clientFilter'), p = val('periodeFilter');
+    return getSummaryLines().filter(l => (isAll(m) || l.nama === m) && (isAll(c) || l.client === c) && (isAll(p) || l.periode === p));
+}
+
+function pctOf(ls) {
+    const spp = sum(ls, 'spp'), eff = ls.reduce((s, l) => s + Math.min(l.datang, l.spp), 0), minus = ls.some(l => l.sisa > 0);
+    const p = spp > 0 ? eff / spp * 100 : 0;
+    return minus ? Math.min(99, Math.floor(p)) : Math.min(100, Math.round(p));
+}
+
+function renderSummary() {
+    const gv = document.getElementById('groupedView'), grid = document.getElementById('clientGrid');
+    if (!matData.length) { grid.innerHTML = ''; gv.innerHTML = noData('Material'); document.getElementById('dataInfo').textContent = 'Data Material belum tersedia.'; return; }
+    const lines = filteredSummary(), pf = val('periodeFilter');
+    const clients = [...new Set(lines.map(l => l.client))].sort((a, b) => clientRank(a) - clientRank(b));
+    grid.innerHTML = clients.map(c => {
+        const ls = lines.filter(l => l.client === c), p = pctOf(ls);
+        return `<div class="summary-card client-card client-${c.toLowerCase().replace(/\s/g, '-')} glass-hover-fx">
+            <h3>${c === 'Komatsu' ? '🔵' : c === 'Sumitomo' ? '🟠' : '⚪'} ${c}</h3><small>${ls[0].clientFull}</small>
+            <div class="stat-row"><div>SPP Total<b>${sum(ls, 'spp')}</b></div><div>Kedatangan<b>${sum(ls, 'datang')}</b></div><div>Total Bon<b>${sum(ls, 'bon')}</b></div><div>Stock Gudang<b>${sum(ls, 'stock')}</b></div></div>
+            <div class="perf-info"><span>${ls.filter(l => l.sisa > 0).length} item masih kurang</span><span>${p}% Terpenuhi</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${p}%"></div></div></div>`;
+    }).join('');
+    gv.innerHTML = `<div class="data-info" style="margin:0 0 10px">Kedatangan, Total Bon &amp; Stock per periode dialokasikan otomatis (periode SPP terlama dipenuhi lebih dulu), karena sheet Kedatangan &amp; Bon tidak mencatat periode/client.</div>` +
+        clients.map(c => {
+            const ls = lines.filter(l => l.client === c);
+            const periods = [...new Set(ls.map(l => l.periode))].sort((a, b) => periodeOrder(a) - periodeOrder(b));
+            return `<div class="client-title">${c}</div>` + periods.map(p => periodBlock(ls.filter(l => l.periode === p), p, !isAll(pf))).join('');
+        }).join('') || '<div class="data-info">Tidak ada data ditemukan.</div>';
+    document.getElementById('dataInfo').innerHTML = `Menampilkan <b>${lines.length}</b> baris SPP dari <b>${clients.length}</b> client.`;
+}
+
+function periodBlock(ls, p, open) {
+    const kurang = ls.filter(l => l.sisa > 0).length, pc = pctOf(ls);
+    const rows = ls.slice().sort((a, b) => String(a.nama).localeCompare(String(b.nama))).map((l, i) => {
+        const minus = l.sisa > 0, cls = minus ? 'badge-danger' : 'badge-success';
+        return `<tr><td>${i + 1}</td><td style="text-align:left">${minus ? '⚠️ ' : ''}${l.nama}</td><td>${l.id}</td><td>${l.ukuran}</td><td>${l.spp}</td><td>${l.satuan}</td>
+            <td>${l.datang === 0 ? '<span style="color:#ef4444;font-weight:bold">-</span>' : `<span class="badge ${cls}">${minus ? '' : '✨ '}${l.datang}</span>`}</td>
+            <td><span class="badge ${cls}">${minus ? '-' + l.sisa : 'Terpenuhi'}</span></td><td>${dash(l.bon)}</td><td>${dash(l.stock)}</td></tr>`;
+    }).join('');
+    const heads = ['No', 'Nama Material', 'ID Material', 'Ukuran', 'SPP Total', 'Satuan', 'Kedatangan', 'Remark', 'Total Bon', 'Stock Gudang'].map(h => `<th>${h}</th>`).join('');
+    return `<details class="acc" ${open ? 'open' : ''}><summary><span>📆 ${p}</span><span class="acc-meta"><span>${ls.length} item</span><span>SPP ${sum(ls, 'spp')}</span><span>Datang ${sum(ls, 'datang')}</span>
+        <div class="progress-bar-bg mini-bar"><div class="progress-bar-fill" style="width:${pc}%"></div></div>
+        <span class="badge ${kurang ? 'badge-danger' : 'badge-success'}">${kurang ? kurang + ' item kurang' : pc + '% Terpenuhi'}</span></span></summary>
+        <div class="acc-body"><table class="nested-table"><thead><tr>${heads}</tr></thead><tbody>${rows}
+        <tr class="total-row"><td colspan="4" style="text-align:right">TOTAL</td><td>${sum(ls, 'spp')}</td><td></td><td>${sum(ls, 'datang')}</td><td>${pc}%</td><td>${sum(ls, 'bon')}</td><td>${sum(ls, 'stock')}</td></tr>
+        </tbody></table></div></details>`;
+}
+
+// ---------------------------------------------------------
+// BON MATERIAL: Bulan > Tanggal > Material (dropdown)
+// ---------------------------------------------------------
+function parseDate(v) {
+    if (!v) return null;
+    const m = String(v).match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+    const d = new Date(v); return isNaN(d) ? null : d;
+}
+
+function renderBon() {
+    const gv = document.getElementById('groupedView'), mat = val('materialFilter');
+    if (!bonData.length) { gv.innerHTML = noData('Bon Material'); document.getElementById('dataInfo').textContent = 'Data Bon Material belum tersedia.'; return; }
+    const months = {}; let n = 0;
+    bonData.forEach(r => {
+        if (!isAll(mat) && r[0] !== mat) return;
+        const d = parseDate(r[4]), pad = x => String(x).padStart(2, '0');
+        const mk = d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}` : '0000', dk = d ? `${mk}-${pad(d.getDate())}` : '0000';
+        const M = months[mk] = months[mk] || { d, days: {} };
+        (M.days[dk] = M.days[dk] || { d, items: [] }).items.push({ nama: r[0], id: r[1], ukuran: r[2], qty: formatWholeNumber(r[3]), remark: r[5], row: r[6] });
+        n++;
+    });
+    const qsum = a => a.reduce((s, i) => s + i.qty, 0);
+    const bulan = d => d ? `${BULAN[d.getMonth()]} ${d.getFullYear()}` : 'Tanpa Tanggal';
+    const hari = d => d ? `${String(d.getDate()).padStart(2, '0')} ${bulan(d)}` : 'Tanpa Tanggal';
+    gv.innerHTML = Object.keys(months).sort().reverse().map(mk => {
+        const M = months[mk], dks = Object.keys(M.days).sort().reverse(), items = dks.flatMap(k => M.days[k].items);
+        return `<details class="acc"><summary><span>🗓️ ${bulan(M.d)}</span><span class="acc-meta"><span>${dks.length} hari bon</span><span>${items.length} pengambilan</span><span class="badge badge-success">Total ${qsum(items)}</span></span></summary><div class="acc-body">` +
+            dks.map(dk => {
+                const D = M.days[dk];
+                const rows = D.items.map(i => `<tr><td style="text-align:left">${i.nama}</td><td>${i.id}</td><td>${i.ukuran}</td><td><b>${i.qty}</b></td><td>${i.remark || '-'}</td>${session ? `<td><button class="btn-edit" onclick="openForm(${i.row})">✏️ Edit</button></td>` : ''}</tr>`).join('');
+                return `<details class="acc"><summary><span>📅 ${hari(D.d)}</span><span class="acc-meta"><span>${D.items.length} material</span><span class="badge badge-success">Total ${qsum(D.items)}</span></span></summary>
+                    <div class="acc-body"><table class="nested-table"><thead><tr><th>Nama Material</th><th>ID Material</th><th>Ukuran</th><th>Jumlah</th><th>Remark</th>${session ? '<th>Aksi</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
+            }).join('') + `</div></details>`;
+    }).join('') || '<div class="data-info">Tidak ada data bon ditemukan.</div>';
+    document.getElementById('dataInfo').innerHTML = `Menampilkan <b>${n}</b> pengambilan material dalam <b>${Object.keys(months).length}</b> bulan (terbaru di atas).`;
 }
 
 // ---------------------------------------------------------
@@ -483,7 +694,8 @@ function renderTableKedatangan() {
             sj: row[idxSj] || '-',
             tgl: formatDate(row[idxTgl]) || '-',
             qty: qty,
-            kondisi: row[idxKond] || '-'
+            kondisi: row[idxKond] || '-',
+            row: row[7]
         });
         countDetail++;
     });
@@ -525,6 +737,7 @@ function renderTableKedatangan() {
                 <td style="text-align:center;">${d.tgl}</td>
                 <td style="text-align:center; font-weight:700;">${d.qty}</td>
                 <td style="text-align:center;"><span class="badge ${badgeClass}">${d.kondisi}</span></td>
+                ${session ? `<td style="text-align:center;">${d.row ? `<button class="btn-edit" onclick="openForm(${d.row})">✏️ Edit</button>` : ''}</td>` : ''}
             </tr>`;
         }).join('');
 
@@ -538,6 +751,7 @@ function renderTableKedatangan() {
                             <th style="text-align:center;">Tanggal Datang</th>
                             <th style="text-align:center;">Jumlah Qty</th>
                             <th style="text-align:center;">Kondisi</th>
+                            ${session ? '<th style="text-align:center;">Aksi</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>${detailRows}</tbody>
@@ -608,6 +822,57 @@ function calculateDashboardMetrics() {
         </div>`;
 }
 
+// ---------------------------------------------------------
+// FORM TAMBAH / EDIT (Kedatangan manual & Bon Material)
+// ---------------------------------------------------------
+const esc = s => String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const toInputDate = v => { const d = parseDate(v) || new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+function matInfo(name) {
+    const h = apkHeaders.map(norm), iN = h.indexOf('nama material'), iI = h.indexOf('id material'), iU = h.indexOf('ukuran');
+    const r = apkData.find(x => x[iN] === name) || [];
+    return { id: r[iI] || '', ukuran: r[iU] || '' };
+}
+function syncInfo() { const i = matInfo(val('f_nama')); document.getElementById('f_id').value = i.id; document.getElementById('f_ukuran').value = i.ukuran; }
+
+function openForm(row) {
+    if (!session) { openLogin(() => openForm(row)); return; }
+    const isBon = currentView === 'BON';
+    const rec = row ? (isBon ? bonData.find(r => r[6] === row) : kedData.find(r => r[7] === row)) : null;
+    const iN = apkHeaders.findIndex(h => norm(h) === 'nama material');
+    const names = [...new Set(apkData.map(r => r[iN]))].filter(Boolean).sort();
+    const cur = rec ? (isBon ? rec[0] : rec[3]) : '';
+    const f = (label, html) => `<label>${label}${html}</label>`;
+    const sel = f(isBon ? 'Nama Material' : 'Material', `<select id="f_nama" onchange="syncInfo()"><option value="">-- Pilih Material --</option>${names.map(n => `<option ${n === cur ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`);
+    const info = f(isBon ? 'ID Material' : 'ID Barang', '<input id="f_id" readonly>') + f('Ukuran', '<input id="f_ukuran" readonly>');
+    const tgl = f('Tanggal', `<input id="f_tgl" type="date" value="${toInputDate(rec && rec[isBon ? 4 : 1])}">`);
+    document.getElementById('formBody').innerHTML = isBon
+        ? sel + info + f('Jumlah', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[3]) : ''}">`) + tgl + f('Remark', `<input id="f_remark" value="${rec ? esc(rec[5]) : ''}">`)
+        : f('No. Surat Jalan', `<input id="f_sj" value="${rec ? esc(rec[0]) : ''}">`) + tgl + sel + info + f('Jumlah Masuk', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[5]) : ''}">`)
+            + f('Kondisi', `<input id="f_kondisi" list="dlKondisi" value="${rec ? esc(rec[6]) : 'Bagus'}"><datalist id="dlKondisi"><option>Bagus</option><option>Rusak</option></datalist>`);
+    document.getElementById('formTitle').textContent = (row ? 'Edit ' : 'Tambah ') + (isBon ? 'Bon Material' : 'Kedatangan Material');
+    document.getElementById('formError').textContent = '';
+    formCtx = { isBon, row };
+    syncInfo();
+    document.getElementById('formModal').classList.add('active');
+}
+function closeForm() { document.getElementById('formModal').classList.remove('active'); }
+
+async function saveForm() {
+    const err = document.getElementById('formError'), btn = document.getElementById('btnSave'), { isBon, row } = formCtx;
+    const nama = val('f_nama'), qty = Number(val('f_qty')), tgl = val('f_tgl');
+    if (!nama || !(qty > 0) || !tgl || (!isBon && !val('f_sj').trim())) { err.textContent = isBon ? 'Material, jumlah (> 0), dan tanggal wajib diisi.' : 'No. Surat Jalan, material, jumlah (> 0), dan tanggal wajib diisi.'; return; }
+    const data = { nama, id: val('f_id'), ukuran: val('f_ukuran'), qty, tgl };
+    if (isBon) data.remark = val('f_remark'); else { data.sj = val('f_sj').trim(); data.kondisi = val('f_kondisi'); }
+    btn.disabled = true; err.textContent = '';
+    try {
+        const r = await api({ action: (row ? 'update_' : 'add_') + (isBon ? 'bon' : 'ked'), row, data });
+        if (r.error) { err.textContent = r.error; return; }
+        closeForm(); fetchData();
+    } catch (x) { err.textContent = 'Gagal menyimpan, coba lagi.'; }
+    finally { btn.disabled = false; }
+}
+
 function applySticky() {
     const table = document.getElementById('dataTable');
     const tbody = table.querySelector('tbody');
@@ -641,10 +906,24 @@ function printReport() {
 }
 
 function exportExcel() {
-    const table = document.getElementById('dataTable');
-    const wb = XLSX.utils.table_to_book(table, {sheet: currentView});
+    let wb;
+    if (currentView === 'SUMMARY') {
+        const rows = filteredSummary().sort((a, b) => clientRank(a.client) - clientRank(b.client) || periodeOrder(a.periode) - periodeOrder(b.periode) || String(a.nama).localeCompare(String(b.nama)))
+            .map(l => ({ 'Client': l.client, 'Periode': l.periode, 'Nama Material': l.nama, 'ID Material': l.id, 'Ukuran': l.ukuran, 'SPP Total': l.spp, 'Satuan': l.satuan,
+                'Kedatangan': l.datang, 'Remark': l.sisa > 0 ? '-' + l.sisa : 'Terpenuhi', 'Total Bon': l.bon, 'Stock Gudang': l.stock }));
+        wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Summary');
+    } else if (currentView === 'BON') {
+        const mat = val('materialFilter');
+        const rows = bonData.filter(r => isAll(mat) || r[0] === mat).map(r => { const d = parseDate(r[4]);
+            return { t: d ? d.getTime() : 0, o: { 'Bulan': d ? `${BULAN[d.getMonth()]} ${d.getFullYear()}` : '-', 'Tanggal': r[4] || '-', 'Nama Material': r[0], 'ID Material': r[1], 'Ukuran': r[2], 'Jumlah': formatWholeNumber(r[3]), 'Remark': r[5] || '' } }; })
+            .sort((a, b) => b.t - a.t).map(x => x.o);
+        wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Bon Material');
+    } else {
+        wb = XLSX.utils.table_to_book(document.getElementById('dataTable'), { sheet: currentView });
+    }
     XLSX.writeFile(wb, `Report_${currentView}_${new Date().getTime()}.xlsx`);
 }
+fetchData();
 </script>
 
 </body>
