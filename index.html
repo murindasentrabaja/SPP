@@ -62,6 +62,26 @@
         .form-grid input, .form-grid select { width: 100%; min-width: 0; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.8); border-radius: 14px; background-color: rgba(255,255,255,0.6); font: 600 14px 'Plus Jakarta Sans', sans-serif; color: var(--text-main); }
         .form-grid label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
         .form-grid input[readonly] { opacity: 0.7; }
+        .form-grid .field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
+        /* Pemilih ID: ID besar di atas, material & ukuran kecil di bawahnya */
+        .pk-btn { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 16px; border: 1px solid rgba(255,255,255,0.8); border-radius: 14px; background: rgba(255,255,255,0.6); cursor: pointer; }
+        .pk-btn:hover { background: rgba(255,255,255,0.8); }
+        .pk-btn.open, .pk-btn:focus-visible { outline: 2px solid var(--liquid-blue); outline-offset: 1px; }
+        .pk-btn::after { content: ''; flex-shrink: 0; width: 8px; height: 8px; margin: 0 4px 4px 0; border-right: 2px solid #64748b; border-bottom: 2px solid #64748b; transform: rotate(45deg); transition: transform 0.2s; }
+        .pk-btn.open::after { transform: rotate(-135deg); margin: 4px 4px 0 0; }
+        .pk-btn-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .pk-id { display: block; font-size: 15px; font-weight: 800; color: #1e293b; letter-spacing: 0.2px; }
+        .pk-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; line-height: 1.35; }
+        .pk-name { font-weight: 700; color: var(--text-main); }
+        .pk-size { font-style: normal; font-weight: 600; color: var(--text-muted); background: rgba(100,116,139,0.13); padding: 1px 9px; border-radius: 20px; overflow-wrap: anywhere; }
+        .pk-ph { color: var(--text-muted); font-weight: 600; font-size: 14px; }
+        .pk-panel { display: none; flex-direction: column; gap: 8px; padding: 10px; border-radius: 16px; background: rgba(255,255,255,0.72); border: 1px solid rgba(255,255,255,0.9); }
+        .pk-panel.open { display: flex; }
+        .pk-list { max-height: 270px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+        .pk-opt { display: flex; flex-direction: column; gap: 3px; padding: 9px 12px; border-radius: 12px; cursor: pointer; }
+        .pk-opt:hover { background: rgba(139,184,248,0.22); }
+        .pk-opt.sel { background: rgba(139,184,248,0.38); }
+        .pk-empty { padding: 16px; text-align: center; color: var(--text-muted); font-weight: 600; font-size: 13px; }
         .btn-edit { padding: 6px 12px; font-size: 12px; color: var(--text-main); background: rgba(255,255,255,0.6); }
 
         /* Container & Layout */
@@ -175,7 +195,9 @@
         .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
         .modal-header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.4); }
         .modal-header h2 { margin: 0; font-size: 19px; font-weight: 800; }
-        .btn-close { background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); font-size: 26px; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .btn-close { background: rgba(255,255,255,0.9); color: #1e293b; border: 1.5px solid rgba(71,85,105,0.45); box-shadow: 0 2px 8px rgba(0,0,0,0.12); font-size: 28px; font-weight: 600; line-height: 1; padding: 0 0 3px; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .btn-close:hover { background: #fee2e2; color: #dc2626; border-color: #f87171; }
+        .btn-close:focus-visible { outline: 3px solid var(--liquid-blue); outline-offset: 2px; }
         .modal-content iframe { flex-grow: 1; border: none; width: 100%; height: 100%; }
         #printHeader { display: none; }
         
@@ -313,7 +335,7 @@ let matData = [], matHeaders = [], bonData = [], bonHeaders = [];
 let apkData = [], apkHeaders = [];
 let kedData = [], kedHeaders = [];
 
-let session = null, formCtx = null, userList = [], afterLogin = null;
+let session = null, formCtx = null, userList = [], afterLogin = null, formList = [];
 
 function api(payload) {
     return fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -828,41 +850,81 @@ function calculateDashboardMetrics() {
 const esc = s => String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const toInputDate = v => { const d = parseDate(v) || new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
-function matInfo(name) {
+// Daftar barang untuk dropdown ID, diambil dari Data APK (kolom Nama Material, ID Material, Ukuran).
+// Material & ukuran TIDAK diisi di form: di sheet sudah otomatis oleh rumus, form hanya menampilkannya sebagai keterangan ID.
+function barangList() {
     const h = apkHeaders.map(norm), iN = h.indexOf('nama material'), iI = h.indexOf('id material'), iU = h.indexOf('ukuran');
-    const r = apkData.find(x => x[iN] === name) || [];
-    return { id: r[iI] || '', ukuran: r[iU] || '' };
+    const seen = new Set();
+    return apkData.map(r => ({ id: String(r[iI] || '').trim(), nama: String(r[iN] || '').trim(), ukuran: String(r[iU] || '').trim() }))
+        .filter(b => b.id && !seen.has(b.id) && seen.add(b.id))
+        .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 }
-function syncInfo() { const i = matInfo(val('f_nama')); document.getElementById('f_id').value = i.id; document.getElementById('f_ukuran').value = i.ukuran; }
+const barangLabel = b => `${b.id} — ${b.nama}${b.ukuran ? ' — ' + b.ukuran : ''}`;
+
+const pkText = b => `<b class="pk-id">${esc(b.id)}</b><span class="pk-sub"><span class="pk-name">${esc(b.nama)}</span>${b.ukuran ? `<em class="pk-size">${esc(b.ukuran)}</em>` : ''}</span>`;
+function pkShow() {
+    const b = formList.find(x => x.id === val('f_id'));
+    document.getElementById('pk_btn_txt').innerHTML = b ? pkText(b) : '<span class="pk-ph">Pilih ID barang…</span>';
+}
+function pkRender(q) {
+    const k = norm(q), cur = val('f_id');
+    const items = formList.filter(b => !k || norm(b.id + ' ' + b.nama + ' ' + b.ukuran).includes(k));
+    document.getElementById('pk_list').innerHTML = items.length
+        ? items.map(b => `<div class="pk-opt${b.id === cur ? ' sel' : ''}" role="option" data-id="${esc(b.id)}">${pkText(b)}</div>`).join('')
+        : '<div class="pk-empty">Tidak ada yang cocok.</div>';
+}
+function pkToggle(force) {
+    const p = document.getElementById('pk_panel'), btn = document.getElementById('pk_btn');
+    const open = typeof force === 'boolean' ? force : !p.classList.contains('open');
+    p.classList.toggle('open', open); btn.classList.toggle('open', open); btn.setAttribute('aria-expanded', open);
+    if (!open) return;
+    const q = document.getElementById('pk_q'); q.value = ''; pkRender('');
+    if (window.matchMedia && matchMedia('(pointer: fine)').matches) q.focus();
+    const sel = p.querySelector('.pk-opt.sel'); if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+function pkPick(id) { document.getElementById('f_id').value = id; pkShow(); pkToggle(false); }
+function pkKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); const o = document.querySelector('#pk_list .pk-opt'); if (o) pkPick(o.dataset.id); }
+    else if (e.key === 'Escape') { e.stopPropagation(); pkToggle(false); document.getElementById('pk_btn').focus(); }
+}
 
 function openForm(row) {
     if (!session) { openLogin(() => openForm(row)); return; }
     const isBon = currentView === 'BON';
     const rec = row ? (isBon ? bonData.find(r => r[6] === row) : kedData.find(r => r[7] === row)) : null;
-    const iN = apkHeaders.findIndex(h => norm(h) === 'nama material');
-    const names = [...new Set(apkData.map(r => r[iN]))].filter(Boolean).sort();
-    const cur = rec ? (isBon ? rec[0] : rec[3]) : '';
+    formList = barangList();
+    // ID baris yang diedit: Bon = kolom ke-2 (hasil rumus), Kedatangan = kolom ke-3; jika kosong, cocokkan lewat nama material
+    const rId = rec ? String(isBon ? rec[1] : rec[2]).trim() : '', rNama = rec ? String(isBon ? rec[0] : rec[3]).trim() : '', rUkuran = rec ? String(isBon ? rec[2] : rec[4]).trim() : '';
+    let cur = rId;
+    if (rec && !formList.some(b => b.id === cur)) {
+        const m = formList.find(b => norm(b.nama) === norm(rNama));
+        if (m) cur = m.id; else if (cur) formList.unshift({ id: cur, nama: rNama, ukuran: rUkuran });
+    }
     const f = (label, html) => `<label>${label}${html}</label>`;
-    const sel = f(isBon ? 'Nama Material' : 'Material', `<select id="f_nama" onchange="syncInfo()"><option value="">-- Pilih Material --</option>${names.map(n => `<option ${n === cur ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`);
-    const info = f(isBon ? 'ID Material' : 'ID Barang', '<input id="f_id" readonly>') + f('Ukuran', '<input id="f_ukuran" readonly>');
+    const sel = `<div class="field"><span>${isBon ? 'ID Material' : 'ID Barang'}</span>
+        <input type="hidden" id="f_id" value="${esc(cur)}">
+        <div class="pk-btn" id="pk_btn" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" onclick="pkToggle()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pkToggle();}"><div class="pk-btn-txt" id="pk_btn_txt"></div></div>
+        <div class="pk-panel" id="pk_panel"><input id="pk_q" type="search" placeholder="Cari ID, material, atau ukuran…" autocomplete="off" oninput="pkRender(this.value)" onkeydown="pkKey(event)"><div class="pk-list" id="pk_list" role="listbox"></div></div></div>`;
     const tgl = f('Tanggal', `<input id="f_tgl" type="date" value="${toInputDate(rec && rec[isBon ? 4 : 1])}">`);
     document.getElementById('formBody').innerHTML = isBon
-        ? sel + info + f('Jumlah', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[3]) : ''}">`) + tgl + f('Remark', `<input id="f_remark" value="${rec ? esc(rec[5]) : ''}">`)
-        : f('No. Surat Jalan', `<input id="f_sj" value="${rec ? esc(rec[0]) : ''}">`) + tgl + sel + info + f('Jumlah Masuk', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[5]) : ''}">`)
+        ? sel + f('Jumlah', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[3]) : ''}">`) + tgl + f('Remark', `<input id="f_remark" value="${rec ? esc(rec[5]) : ''}">`)
+        : f('No. Surat Jalan', `<input id="f_sj" value="${rec ? esc(rec[0]) : ''}">`) + tgl + sel + f('Jumlah Masuk', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[5]) : ''}">`)
             + f('Kondisi', `<input id="f_kondisi" list="dlKondisi" value="${rec ? esc(rec[6]) : 'Bagus'}"><datalist id="dlKondisi"><option>Bagus</option><option>Rusak</option></datalist>`);
     document.getElementById('formTitle').textContent = (row ? 'Edit ' : 'Tambah ') + (isBon ? 'Bon Material' : 'Kedatangan Material');
     document.getElementById('formError').textContent = '';
     formCtx = { isBon, row };
-    syncInfo();
+    pkShow();
+    document.getElementById('pk_list').onclick = e => { const o = e.target.closest('.pk-opt'); if (o) pkPick(o.dataset.id); };
     document.getElementById('formModal').classList.add('active');
 }
 function closeForm() { document.getElementById('formModal').classList.remove('active'); }
 
 async function saveForm() {
     const err = document.getElementById('formError'), btn = document.getElementById('btnSave'), { isBon, row } = formCtx;
-    const nama = val('f_nama'), qty = Number(val('f_qty')), tgl = val('f_tgl');
-    if (!nama || !(qty > 0) || !tgl || (!isBon && !val('f_sj').trim())) { err.textContent = isBon ? 'Material, jumlah (> 0), dan tanggal wajib diisi.' : 'No. Surat Jalan, material, jumlah (> 0), dan tanggal wajib diisi.'; return; }
-    const data = { nama, id: val('f_id'), ukuran: val('f_ukuran'), qty, tgl };
+    const b = formList.find(x => x.id === val('f_id')), qty = Number(val('f_qty')), tgl = val('f_tgl');
+    if (!b || !(qty > 0) || !tgl || (!isBon && !val('f_sj').trim())) { err.textContent = isBon ? 'Pilih ID material, isi jumlah (> 0) dan tanggal.' : 'Isi No. Surat Jalan, pilih ID barang, isi jumlah (> 0) dan tanggal.'; return; }
+    // nama & ukuran ikut dikirim hanya agar kompatibel dengan Code.gs lama; Code.gs baru memakai rumus untuk kolom tersebut
+    const data = { id: b.id, nama: b.nama, ukuran: b.ukuran, qty, tgl };
     if (isBon) data.remark = val('f_remark'); else { data.sj = val('f_sj').trim(); data.kondisi = val('f_kondisi'); }
     btn.disabled = true; err.textContent = '';
     try {
