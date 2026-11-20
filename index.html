@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP MSB - Monitoring & Kedatangan</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>ERP MSB - Monitoring &amp; Kedatangan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
-
         * { box-sizing: border-box; }
 
         :root {
-            --bg-base: #e6eef5;
             --liquid-blue: #8bb8f8;
             --liquid-purple: #c5a6fc;
             --liquid-pink: #f6b5cc;
@@ -22,10 +22,15 @@
             --glass-shadow-hover: 0 25px 50px rgba(0, 0, 0, 0.12), inset 0 3px 4px rgba(255, 255, 255, 1), inset 0 -2px 3px rgba(255, 255, 255, 0.4);
             --text-main: #334155;
             --text-muted: #64748b;
-            --status-success: #10b981;
             --status-danger: #ef4444;
+            /* Warna solid untuk header & kolom beku (agar isi tabel tidak tembus saat di-scroll) */
+            --head-bg: #eef3fa;
+            --sticky-bg: #f6f9fd;
+            --sticky-bg-hover: #ebf2fb;
+            --sticky-bg-selected: #e1ebfa;
+            --line: rgba(148, 163, 184, 0.22);
         }
-        
+
         body {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
             background-color: #e6eef5;
@@ -37,7 +42,7 @@
         }
 
         /* Ambient Blobs & Glass FX */
-        .ambient-blob { position: fixed; filter: blur(40px); z-index: -1; opacity: 0.8; animation: liquidFloat 20s infinite ease-in-out alternate; }
+        .ambient-blob { position: fixed; filter: blur(40px); z-index: -1; opacity: 0.8; pointer-events: none; will-change: transform; animation: liquidFloat 20s infinite ease-in-out alternate; }
         .blob-1 { top: -5%; left: -5%; width: 45vw; height: 45vw; background: radial-gradient(circle, var(--liquid-purple) 0%, rgba(197,166,252,0) 70%); }
         .blob-2 { bottom: -15%; right: -5%; width: 55vw; height: 55vw; background: radial-gradient(circle, var(--liquid-blue) 0%, rgba(139,184,248,0) 70%); animation-delay: -5s; }
         .blob-3 { top: 15%; left: 35%; width: 35vw; height: 35vw; background: radial-gradient(circle, var(--liquid-pink) 0%, rgba(246,181,204,0) 70%); animation-duration: 25s; }
@@ -50,7 +55,7 @@
 
         .glass-hover-fx { position: relative; z-index: 1; }
         .glass-hover-fx::after {
-            content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 3px; 
+            content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 3px;
             background: linear-gradient(90deg, var(--liquid-blue), var(--liquid-purple), var(--liquid-pink), var(--liquid-blue));
             background-size: 300% 100%; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude; opacity: 0; transition: opacity 0.5s ease; z-index: -1; pointer-events: none;
@@ -60,9 +65,8 @@
 
         /* Form login & input */
         .form-grid input, .form-grid select { width: 100%; min-width: 0; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.8); border-radius: 14px; background-color: rgba(255,255,255,0.6); font: 600 14px 'Plus Jakarta Sans', sans-serif; color: var(--text-main); }
-        .form-grid label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
+        .form-grid label, .form-grid .field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
         .form-grid input[readonly] { opacity: 0.7; }
-        .form-grid .field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 13px; }
         /* Pemilih ID: ID besar di atas, material & ukuran kecil di bawahnya */
         .pk-btn { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 10px 16px; border: 1px solid rgba(255,255,255,0.8); border-radius: 14px; background: rgba(255,255,255,0.6); cursor: pointer; }
         .pk-btn:hover { background: rgba(255,255,255,0.8); }
@@ -82,82 +86,105 @@
         .pk-opt:hover { background: rgba(139,184,248,0.22); }
         .pk-opt.sel { background: rgba(139,184,248,0.38); }
         .pk-empty { padding: 16px; text-align: center; color: var(--text-muted); font-weight: 600; font-size: 13px; }
-        .btn-edit { padding: 6px 12px; font-size: 12px; color: var(--text-main); background: rgba(255,255,255,0.6); }
 
         /* Container & Layout */
         .container { max-width: 1500px; margin: 0 auto; background: var(--glass-bg); backdrop-filter: blur(30px) saturate(120%); -webkit-backdrop-filter: blur(30px) saturate(120%); border: 1px solid var(--glass-border); border-radius: 32px; padding: 40px; box-shadow: var(--glass-shadow); flex-grow: 1; display: flex; flex-direction: column; position: relative; z-index: 1; animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUpFade { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-        h1 { text-align: center; background: linear-gradient(135deg, #475569, #1e293b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0; margin-bottom: 20px; font-weight: 800; font-size: 34px; }
+        h1 { text-align: center; background: linear-gradient(135deg, #475569, #1e293b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-top: 0; margin-bottom: 20px; font-weight: 800; font-size: 34px; }
 
         /* Summary Grid */
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 35px; }
-        .summary-card { background: var(--glass-card); border-radius: 24px; padding: 28px; box-shadow: var(--glass-shadow); border: 1px solid rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); transition: 0.4s; position: relative;}
+        .summary-card { background: var(--glass-card); border-radius: 24px; padding: 28px; box-shadow: var(--glass-shadow); border: 1px solid rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); transition: 0.4s; position: relative; }
         .summary-card:hover { transform: translateY(-6px); box-shadow: var(--glass-shadow-hover); }
         .summary-card::before { content: ''; position: absolute; top: 28px; left: -4px; width: 8px; height: 40px; border-radius: 10px; z-index: 2; }
         .card-danger::before { background: var(--status-danger); }
         .card-success::before { background: linear-gradient(to bottom, var(--liquid-blue), var(--liquid-purple)); }
         .summary-card h3 { margin-top: 0; margin-bottom: 18px; font-size: 18px; font-weight: 800; display: flex; gap: 12px; }
         .summary-list { margin: 0; padding-left: 20px; font-weight: 600; line-height: 1.8; }
+        #minusContent { font-size: 15px; color: #334155; font-weight: 600; max-height: 240px; overflow-y: auto; padding-right: 6px; }
         .perf-item { margin-bottom: 16px; }
-        .perf-info { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+        .perf-info { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; font-weight: 700; margin-bottom: 12px; }
         .progress-bar-bg { background: rgba(255, 255, 255, 0.5); border-radius: 20px; height: 14px; width: 100%; border: 1px solid rgba(255,255,255,0.6); overflow: hidden; }
         .progress-bar-fill { background: linear-gradient(90deg, var(--liquid-blue), var(--liquid-purple)); height: 100%; border-radius: 20px; transition: width 1.2s; position: relative; }
 
         /* Controls */
         .controls { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; background: var(--glass-card); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: var(--glass-shadow); }
         .filters, .actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-        select, button { padding: 12px 24px; border: 1px solid rgba(255,255,255,0.7); border-radius: 14px; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); cursor: pointer; font-weight: 700; color: var(--text-main); transition: all 0.3s ease; }
-        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; padding-right: 45px; min-width: 220px; }
+        select, button { padding: 12px 24px; border: 1px solid rgba(255,255,255,0.7); border-radius: 14px; font-size: 14px; font-family: 'Plus Jakarta Sans', sans-serif; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); cursor: pointer; font-weight: 700; color: var(--text-main); transition: all 0.3s ease; }
+        select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; padding-right: 45px; min-width: 220px; }
         select:hover { background-color: rgba(255, 255, 255, 0.7); transform: translateY(-2px); }
         button { color: #fff; }
         button:hover { transform: translateY(-3px); box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(0,0,0,0.1); }
-        
+        button:disabled { opacity: 0.6; cursor: wait; transform: none; }
+        button:focus-visible, select:focus-visible { outline: 3px solid var(--liquid-blue); outline-offset: 2px; }
+
         .btn-switch { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .btn-detail { background: linear-gradient(135deg, #fb7185, #f43f5e); }
         .btn-refresh { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
-        .btn-print { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
         .btn-export { background: linear-gradient(135deg, #34d399, #10b981); }
+        .btn-edit { padding: 6px 12px; font-size: 12px; color: var(--text-main); background: rgba(255,255,255,0.7); }
 
-        /* Table UI */
-        .table-wrapper { overflow-x: auto; overflow-y: auto; max-height: 520px; background: var(--glass-card); border-radius: 20px; border: 1px solid rgba(255,255,255,0.7); box-shadow: var(--glass-shadow); backdrop-filter: blur(20px); }
+        /* Table UI
+           .table-shell = bingkai kaca (tidak ikut scroll), .table-wrapper = area scroll.
+           Dipisah supaya efek glow tepi tidak ikut bergeser saat tabel di-scroll. */
+        .table-shell { background: var(--glass-card); border-radius: 20px; border: 1px solid rgba(255,255,255,0.7); box-shadow: var(--glass-shadow); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); overflow: hidden; }
+        .table-shell.glass-hover-fx::after { z-index: 40; }
+        .table-wrapper { overflow: auto; max-height: min(68vh, 640px); min-height: 120px; }
         .table-wrapper::-webkit-scrollbar { width: 12px; height: 12px; }
         .table-wrapper::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.3); border-radius: 12px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--liquid-blue), var(--liquid-purple)); border-radius: 12px; }
-        
-        table { width: 100%; border-collapse: separate; border-spacing: 0; white-space: nowrap; }
-        th, td { padding: 16px 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.4); font-size: 14px; }
-        th { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); color: #1e293b; font-weight: 800; position: sticky; top: 0; z-index: 20; text-transform: uppercase; font-size: 12px; letter-spacing: 0.8px; }
-        
-        /* Interactive Row Hover for normal table */
-        tbody tr.normal-row { background: transparent; cursor: pointer; transition: all 0.3s ease; }
-        tbody tr.normal-row:hover td { background: rgba(255, 255, 255, 0.5) !important; }
-        tbody tr.selected-row td { background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.5)) !important; font-weight: 700; }
 
-        /* Accordion Custom Styling */
+        table { width: 100%; border-collapse: separate; border-spacing: 0; white-space: nowrap; }
+        th, td { padding: 14px 18px; text-align: center; border-bottom: 1px solid var(--line); font-size: 14px; }
+        th { background: var(--head-bg); color: #1e293b; font-weight: 800; position: sticky; top: 0; z-index: 20; text-transform: uppercase; font-size: 12px; letter-spacing: 0.8px; }
+        .td-left { text-align: left; }
+
+        /* Baris tabel utama (warna lewat variabel, kolom beku memakai versi solid) */
+        #dataTable > tbody > tr { --cell-bg: transparent; --sticky-cell-bg: var(--sticky-bg); }
+        #dataTable > tbody > tr > td { background: var(--cell-bg); transition: background 0.2s; }
+        #dataTable > tbody > tr > td.sticky-col { background: var(--sticky-cell-bg); }
+        #dataTable > tbody > tr.normal-row { cursor: pointer; }
+        #dataTable > tbody > tr.normal-row:hover { --cell-bg: rgba(255,255,255,0.55); --sticky-cell-bg: var(--sticky-bg-hover); }
+        #dataTable > tbody > tr.normal-row.selected-row { --cell-bg: rgba(255,255,255,0.85); --sticky-cell-bg: var(--sticky-bg-selected); font-weight: 700; }
+
+        /* Kolom beku (Nama Material & ID Material) */
+        .sticky-col { position: sticky; left: var(--sx, 0px); }
+        tbody td.sticky-col { z-index: 10; }
+        thead th.sticky-col { z-index: 30; }
+        .sticky-col.sticky-edge { box-shadow: 6px 0 8px -6px rgba(15, 23, 42, 0.18); }
+
+        /* Accordion Kedatangan */
         .accordion-parent { cursor: pointer; background: rgba(255,255,255,0.4); font-weight: 700; transition: background 0.3s; }
-        .accordion-parent:hover { background: rgba(255,255,255,0.7); }
-        .accordion-parent td { border-top: 1px solid rgba(255,255,255,0.8); }
+        .accordion-parent:hover { background: rgba(255,255,255,0.75); }
         .icon-arrow { display: inline-block; transition: transform 0.3s ease; font-size: 12px; color: var(--liquid-purple); }
         .expanded .icon-arrow { transform: rotate(90deg); color: var(--liquid-blue); }
-        
+        .detail-row { display: none; background: rgba(255,255,255,0.3); }
+        .detail-row.open { display: table-row; }
+        .detail-row > td { padding: 0; }
+
         .nested-table { width: 100%; background: transparent; border: none; margin: 0; border-collapse: collapse; }
-        .nested-table th { background: rgba(0, 0, 0, 0.03); color: var(--text-muted); font-size: 11px; padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.4); }
-        .nested-table td { padding: 10px 20px; font-size: 13px; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.2); }
+        .nested-table th { position: static; background: rgba(15, 23, 42, 0.04); color: var(--text-muted); font-size: 11px; padding: 10px 20px; border-bottom: 1px solid var(--line); }
+        .nested-table td { padding: 10px 20px; font-size: 13px; font-weight: 500; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.3); white-space: nowrap; text-align: center; }
+        .nested-table th { white-space: nowrap; text-align: center; }
+        tr.total-row td { font-weight: 800; background: rgba(255,255,255,0.6); }
 
         /* Badges & Info */
-        .badge { padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; display: inline-block; letter-spacing: 0.3px; backdrop-filter: blur(5px); }
+        .badge { padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; display: inline-block; letter-spacing: 0.3px; }
         .badge-danger { background: linear-gradient(135deg, rgba(254, 226, 226, 0.8), rgba(252, 165, 165, 0.6)); color: #991b1b; border: 1px solid rgba(255, 255, 255, 0.9); }
         .badge-success { background: linear-gradient(135deg, rgba(209, 250, 229, 0.8), rgba(110, 231, 183, 0.6)); color: #065f46; border: 1px solid rgba(255, 255, 255, 0.9); }
-        
-        .data-info { color: var(--text-main); font-size: 14px; margin-top: 25px; font-weight: 700; display: flex; gap: 10px; padding: 10px 20px; background: rgba(255,255,255,0.4); border-radius: 12px; border: 1px solid rgba(255,255,255,0.6); width: fit-content; }
-        .data-info::before { content: 'ℹ️'; }
+        .dash-red { color: #ef4444; font-weight: 700; }
+        .dash-muted { color: #94a3b8; }
 
-        #loader { display: none; text-align: center; padding: 30px; font-size: 16px; font-weight: 800; background: linear-gradient(135deg, var(--liquid-blue), var(--liquid-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse 1.5s infinite; }
+        .data-info { color: var(--text-main); font-size: 14px; margin-top: 25px; font-weight: 700; display: flex; align-items: flex-start; gap: 10px; padding: 10px 20px; background: rgba(255,255,255,0.4); border-radius: 12px; border: 1px solid rgba(255,255,255,0.6); width: fit-content; max-width: 100%; line-height: 1.5; }
+        .data-info::before { content: 'ℹ️'; flex-shrink: 0; }
+        .data-info.flush { margin: 0 0 12px; }
+
+        #loader { display: none; text-align: center; padding: 30px; font-size: 16px; font-weight: 800; background: linear-gradient(135deg, var(--liquid-blue), var(--liquid-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.5; transform: scale(0.98); } }
 
         /* Footer */
         .license { margin-top: 45px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.6); text-align: center; font-size: 13px; font-weight: 600; }
-        .license strong { background: linear-gradient(135deg, var(--liquid-blue), var(--liquid-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+        .license strong { background: linear-gradient(135deg, var(--liquid-blue), var(--liquid-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
         .license em { color: #64748b; font-size: 12px; }
 
         /* View tabs, summary client & accordion */
@@ -183,29 +210,43 @@
         .acc-meta { margin-left: auto; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); }
         .acc-body { padding: 0 14px 14px; overflow-x: auto; }
         details.acc details.acc { box-shadow: none; margin: 10px 0 0; background: rgba(255,255,255,0.3); }
-        .mini-bar { width: 120px; height: 10px; }
-        .nested-table td, .nested-table th { white-space: nowrap; text-align: center; }
-        tr.total-row td { font-weight: 800; background: rgba(255,255,255,0.55); }
-        @media (max-width: 900px) { .client-grid, .summary-grid { grid-template-columns: 1fr; } .stat-row { grid-template-columns: repeat(2, 1fr); } body { padding: 12px; } .container { padding: 20px; } }
+        .mini-bar { width: 120px; height: 10px; flex-shrink: 0; }
 
-        /* Modals & Prints omitted for brevity (sama seperti sebelumnya) */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(230, 238, 245, 0.4); backdrop-filter: blur(15px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+        @media (max-width: 900px) {
+            .client-grid, .summary-grid { grid-template-columns: 1fr; }
+            .stat-row { grid-template-columns: repeat(2, 1fr); }
+            body { padding: 12px; }
+            .container { padding: 20px; border-radius: 24px; }
+            h1 { font-size: 24px; }
+            .controls { padding: 14px; gap: 14px; }
+            .filters, .actions { width: 100%; }
+            .filters select { min-width: 0; width: 100%; }
+            .actions button { flex: 1 1 auto; padding: 10px 14px; }
+            .acc-meta { margin-left: 0; width: 100%; }
+            th, td { padding: 12px 14px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ambient-blob, .container, .glass-hover-fx:hover::after, #loader { animation: none; }
+        }
+
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(230, 238, 245, 0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 1000; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-content { width: 92%; max-width: 1300px; height: 85vh; background: var(--glass-bg); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 32px; display: flex; flex-direction: column; overflow: hidden; transform: scale(0.9) translateY(40px); transition: 0.5s; }
         .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
-        .modal-header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.4); }
+        .modal-header { padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.5); background: rgba(255, 255, 255, 0.4); }
         .modal-header h2 { margin: 0; font-size: 19px; font-weight: 800; }
         .btn-close { background: rgba(255,255,255,0.9); color: #1e293b; border: 1.5px solid rgba(71,85,105,0.45); box-shadow: 0 2px 8px rgba(0,0,0,0.12); font-size: 28px; font-weight: 600; line-height: 1; padding: 0 0 3px; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-close:hover { background: #fee2e2; color: #dc2626; border-color: #f87171; }
-        .btn-close:focus-visible { outline: 3px solid var(--liquid-blue); outline-offset: 2px; }
         .modal-content iframe { flex-grow: 1; border: none; width: 100%; height: 100%; }
         #printHeader { display: none; }
-        
+
         @media print {
             body { background: white; padding: 0; }
-            .ambient-blob, #login-overlay, .controls, #loader, .summary-grid, .data-info, .license, .modal-overlay { display: none !important; }
+            .ambient-blob, .controls, #loader, .summary-grid, .data-info, .license, .modal-overlay, .view-tabs { display: none !important; }
             .container { box-shadow: none; border: none; padding: 0; }
-            .table-wrapper { max-height: none; border: none !important; box-shadow: none; }
+            .table-shell { border: none !important; box-shadow: none; }
+            .table-wrapper { max-height: none; overflow: visible; }
             table { width: 100%; font-size: 9pt; border-collapse: collapse; }
             th, td { border: 1px solid #000 !important; padding: 8px !important; color: #000 !important; }
             #printHeader { display: block; text-align: center; margin-bottom: 25px; border-bottom: 3px solid #000; padding-bottom: 12px; }
@@ -235,15 +276,15 @@
         <button class="view-tab" data-view="KEDATANGAN" onclick="setView('KEDATANGAN')">📦 Kedatangan Material</button>
         <button class="view-tab" data-view="BON" onclick="setView('BON')">🧾 Bon Material</button>
     </div>
-    
+
     <div class="summary-grid" id="summaryGrid">
         <div class="summary-card card-danger glass-hover-fx" id="summaryBoxMinus">
             <h3>⚠️ Ringkasan Material Kurang / Minus (-)</h3>
-            <div id="minusContent" style="font-size:15px; color:#334155; font-weight: 600;">Menunggu Autentikasi...</div>
+            <div id="minusContent">Memuat data…</div>
         </div>
         <div class="summary-card card-success glass-hover-fx" id="summaryBoxPerf">
             <h3>📈 Persentase Pemenuhan Material Keseluruhan</h3>
-            <div id="perfContent" style="font-weight: 600;">Menunggu Autentikasi...</div>
+            <div id="perfContent" style="font-weight: 600;">Memuat data…</div>
         </div>
     </div>
 
@@ -251,36 +292,37 @@
 
     <div class="controls glass-hover-fx">
         <div class="filters">
-            <select class="glass-hover-fx" id="materialFilter" onchange="renderTable()"><option>Menunggu Autentikasi...</option></select>
-            <select class="glass-hover-fx" id="clientFilter" style="display:none" onchange="renderTable()"></select>
-            <select class="glass-hover-fx" id="periodeFilter" style="display:none" onchange="renderTable()"></select>
+            <select id="materialFilter" onchange="renderTable()" aria-label="Filter material"><option>Memuat…</option></select>
+            <select id="clientFilter" style="display:none" onchange="renderTable()" aria-label="Filter client"></select>
+            <select id="periodeFilter" style="display:none" onchange="renderTable()" aria-label="Filter periode"></select>
         </div>
         <div class="actions">
-            <!-- Tombol Switch View -->
-            <button class="btn-switch glass-hover-fx" id="btnExpand" style="display:none" onclick="toggleAll(true)">⬇️ Buka Semua</button>
-            <button class="btn-switch glass-hover-fx" id="btnCollapse" style="display:none" onclick="toggleAll(false)">⬆️ Tutup Semua</button>
-            <button class="btn-export glass-hover-fx" id="btnAdd" style="display:none" onclick="openForm()">➕ Tambah Data</button>
-            <button class="btn-switch glass-hover-fx" id="btnShowLogin" onclick="openLogin()">🔐 Login</button>
+            <button class="btn-switch" id="btnExpand" style="display:none" onclick="toggleAll(true)">⬇️ Buka Semua</button>
+            <button class="btn-switch" id="btnCollapse" style="display:none" onclick="toggleAll(false)">⬆️ Tutup Semua</button>
+            <button class="btn-export" id="btnAdd" style="display:none" onclick="openForm()">➕ Tambah Data</button>
+            <button class="btn-switch" id="btnShowLogin" onclick="openLogin()">🔐 Login</button>
             <span class="badge badge-success" id="userChip" style="display:none"></span>
-            <button class="btn-detail glass-hover-fx" id="btnLogout" style="display:none" onclick="doLogout()">🚪 Keluar</button>
-            <button class="btn-detail glass-hover-fx" id="btnDetail" onclick="openDetailSPP()">📋 Detail SPP</button>
-            <button class="btn-refresh glass-hover-fx" onclick="fetchData()">🍃 Sinkronisasi Data</button>
-            <button class="btn-export glass-hover-fx" onclick="exportExcel()">📊 Export Excel</button>
+            <button class="btn-detail" id="btnLogout" style="display:none" onclick="doLogout()">🚪 Keluar</button>
+            <button class="btn-detail" id="btnDetail" onclick="openDetailSPP()">📋 Detail SPP</button>
+            <button class="btn-refresh" id="btnSync" onclick="fetchData()">🍃 Sinkronisasi Data</button>
+            <button class="btn-export" onclick="exportExcel()">📊 Export Excel</button>
         </div>
     </div>
 
     <div id="loader">✨ Menghubungkan ke MSB ERP System...</div>
 
-    <div class="table-wrapper glass-hover-fx">
-        <table id="dataTable">
-            <thead></thead>
-            <tbody></tbody>
-        </table>
+    <div class="table-shell glass-hover-fx" id="tableShell">
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="grouped" id="groupedView"></div>
 
-    <div class="data-info glass-hover-fx" id="dataInfo">Menampilkan 0 dari 0 baris data keseluruhan.</div>
+    <div class="data-info glass-hover-fx" id="dataInfo"><span>Memuat data…</span></div>
 
     <div class="license">
         PT Murinda Sentra Baja - Kalijati, Subang<br>
@@ -291,12 +333,12 @@
 
 <div id="loginModal" class="modal-overlay">
     <div class="modal-content" style="max-width:420px;height:auto">
-        <div class="modal-header"><h2>🔐 Login untuk Edit Data</h2><button class="btn-close" onclick="closeLogin()">&times;</button></div>
+        <div class="modal-header"><h2>🔐 Login untuk Edit Data</h2><button class="btn-close" onclick="closeLogin()" aria-label="Tutup">&times;</button></div>
         <div class="form-grid" style="padding:24px;display:grid;gap:14px">
             <label>Username<select id="loginUser"></select></label>
             <label>Password<input id="loginPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></label>
         </div>
-        <div style="padding:0 24px 24px;display:flex;gap:12px;align-items:center;justify-content:flex-end">
+        <div style="padding:0 24px 24px;display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
             <span id="loginError" style="color:#ef4444;font-weight:700;font-size:13px;margin-right:auto"></span>
             <button class="btn-detail" onclick="closeLogin()">Batal</button>
             <button class="btn-export" id="btnLogin" onclick="doLogin()">Masuk</button>
@@ -306,9 +348,9 @@
 
 <div id="formModal" class="modal-overlay">
     <div class="modal-content" style="max-width:560px;height:auto;max-height:90vh;overflow:auto">
-        <div class="modal-header"><h2 id="formTitle"></h2><button class="btn-close" onclick="closeForm()">&times;</button></div>
+        <div class="modal-header"><h2 id="formTitle"></h2><button class="btn-close" onclick="closeForm()" aria-label="Tutup">&times;</button></div>
         <div class="form-grid" id="formBody" style="padding:24px;display:grid;gap:14px"></div>
-        <div style="padding:0 24px 24px;display:flex;gap:12px;justify-content:flex-end;align-items:center">
+        <div style="padding:0 24px 24px;display:flex;gap:12px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
             <span id="formError" style="color:#ef4444;font-weight:700;font-size:13px;margin-right:auto"></span>
             <button class="btn-detail" onclick="closeForm()">Batal</button>
             <button class="btn-export" id="btnSave" onclick="saveForm()">💾 Simpan</button>
@@ -320,48 +362,99 @@
     <div class="modal-content glass-hover-fx">
         <div class="modal-header">
             <h2>Formulir Surat Permintaan Pengadaan (SPP)</h2>
-            <button class="btn-close" onclick="closeDetailSPP()">&times;</button>
+            <button class="btn-close" onclick="closeDetailSPP()" aria-label="Tutup">&times;</button>
         </div>
-        <iframe src="https://murindasentrabaja.github.io/SPP-Form/"></iframe>
+        <iframe id="sppFrame" data-src="https://murindasentrabaja.github.io/SPP-Form/" title="Formulir SPP"></iframe>
     </div>
 </div>
 
 <script>
 // --- PASTIKAN MENGGANTI URL INI DENGAN URL DEPLOYMENT BARU ANDA ---
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzObewtFTwmUtPf9zWHW8St-G2Hu6g-hq2-MFB7W2lAlMw8rtnCTlfMk2_Au0v6C7-w/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzObewtFTwmUtPf9zWHW8St-G2Hu6g-hq2-MFB7W2lAlMw8rtnCTlfMk2_Au0v6C7-w/exec";
 
+// ---------------------------------------------------------
+// HELPER
+// ---------------------------------------------------------
+const $ = id => document.getElementById(id);
+const val = id => $(id).value;
+const norm = s => String(s == null ? '' : s).trim().toLowerCase();
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const isAll = v => !v || v.startsWith('Semua');
+const isEmpty = v => v === '' || v == null || v === 0 || v === '0';
+const dash = n => n === 0 ? '-' : n;
+const sum = (a, k) => a.reduce((s, x) => s + x[k], 0);
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+const periodeOrder = p => { const i = BULAN.findIndex(b => norm(p).startsWith(b.toLowerCase())); return i < 0 ? 99 : i; };
+const byName = (a, b) => String(a).localeCompare(String(b), 'id', { numeric: true });
+const clientShort = c => /komatsu/i.test(c) ? 'Komatsu' : /sumitomo/i.test(c) ? 'Sumitomo' : (String(c || '').trim() || 'Tanpa Client');
+const clientRank = c => { const i = ['Komatsu', 'Sumitomo'].indexOf(c); return i < 0 ? 9 : i; };
+const setInfo = html => { $('dataInfo').innerHTML = '<span>' + html + '</span>'; };
+const noData = s => `<div class="data-info flush"><span>Data sheet "${esc(s)}" belum diterima. Pastikan Code.gs terbaru sudah di-deploy ulang (Deploy → Kelola deployment → Versi baru).</span></div>`;
+const emptyMsg = t => `<div class="data-info flush"><span>${t}</span></div>`;
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+function formatWholeNumber(v) {
+    if (v === "" || v === null || v === undefined) return 0;
+    const num = Number(v); return !isNaN(num) ? Math.round(num) : 0;
+}
+
+function formatDate(v) {
+    if (!v) return v;
+    const s = String(v);
+    if (s.includes('T') && s.includes('Z') && /^\d{4}-\d{2}-\d{2}T/.test(s)) {
+        const d = new Date(s);
+        if (!isNaN(d.getTime())) return `${("0" + d.getDate()).slice(-2)}-${("0" + (d.getMonth() + 1)).slice(-2)}-${d.getFullYear()}`;
+    }
+    return v;
+}
+
+function parseDate(v) {
+    if (!v) return null;
+    const m = String(v).match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+    const d = new Date(v); return isNaN(d) ? null : d;
+}
+const toInputDate = v => { const d = parseDate(v) || new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+// ---------------------------------------------------------
+// STATE
+// ---------------------------------------------------------
 let currentView = 'APK'; // 'APK' | 'SUMMARY' | 'KEDATANGAN' | 'BON'
 let matData = [], matHeaders = [], bonData = [], bonHeaders = [];
 let apkData = [], apkHeaders = [];
 let kedData = [], kedHeaders = [];
-
 let session = null, formCtx = null, userList = [], afterLogin = null, formList = [];
+let sumCache = null, fetching = false;
+const openKed = new Set();
 
+// ---------------------------------------------------------
+// LOGIN
+// ---------------------------------------------------------
 function api(payload) {
     return fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ ...payload, username: session.u, password: session.p }) }).then(r => r.json());
 }
 
 function updateAuthUI() {
-    const on = !!session, chip = document.getElementById('userChip');
-    document.getElementById('btnShowLogin').style.display = on ? 'none' : '';
-    document.getElementById('btnLogout').style.display = on ? '' : 'none';
+    const on = !!session, chip = $('userChip');
+    $('btnShowLogin').style.display = on ? 'none' : '';
+    $('btnLogout').style.display = on ? '' : 'none';
     chip.style.display = on ? '' : 'none'; chip.textContent = on ? '👤 ' + session.name : '';
 }
 
 function openLogin(next) {
     afterLogin = typeof next === 'function' ? next : null;
-    document.getElementById('loginUser').innerHTML = userList.length
+    $('loginUser').innerHTML = userList.length
         ? userList.map(u => `<option value="${esc(u.u)}">${esc(u.n || u.u)}</option>`).join('')
         : '<option value="">(sheet Login belum diisi)</option>';
-    document.getElementById('loginPass').value = ''; document.getElementById('loginError').textContent = '';
-    document.getElementById('loginModal').classList.add('active');
-    setTimeout(() => document.getElementById('loginPass').focus(), 100);
+    $('loginPass').value = ''; $('loginError').textContent = '';
+    $('loginModal').classList.add('active');
+    setTimeout(() => $('loginPass').focus(), 100);
 }
-function closeLogin() { document.getElementById('loginModal').classList.remove('active'); afterLogin = null; }
+function closeLogin() { $('loginModal').classList.remove('active'); afterLogin = null; }
 
 async function doLogin() {
-    const err = document.getElementById('loginError'), btn = document.getElementById('btnLogin');
+    const err = $('loginError'), btn = $('btnLogin');
     const u = val('loginUser'), p = val('loginPass');
     if (!u || !p) { err.textContent = 'Pilih username dan isi password.'; return; }
     btn.disabled = true; err.textContent = ''; session = { u, p };
@@ -376,48 +469,32 @@ async function doLogin() {
 }
 function doLogout() { session = null; updateAuthUI(); renderTable(); }
 
-function openDetailSPP() { document.getElementById('detailModal').classList.add('active'); document.body.style.overflow = 'hidden'; }
-function closeDetailSPP() { document.getElementById('detailModal').classList.remove('active'); document.body.style.overflow = 'auto'; }
-
-function formatWholeNumber(val) {
-    if (val === "" || val === null || val === undefined) return 0;
-    let num = Number(val); return !isNaN(num) ? Math.round(num) : 0;
+function openDetailSPP() {
+    const f = $('sppFrame'); if (!f.getAttribute('src')) f.src = f.dataset.src; // dimuat saat pertama dibuka
+    $('detailModal').classList.add('active'); document.body.style.overflow = 'hidden';
 }
+function closeDetailSPP() { $('detailModal').classList.remove('active'); document.body.style.overflow = ''; }
 
-function formatDate(val) {
-    if (!val) return val;
-    let strVal = String(val);
-    if (strVal.includes('T') && strVal.includes('Z') && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) {
-        let d = new Date(strVal);
-        if (!isNaN(d.getTime())) {
-            let day = ("0" + d.getDate()).slice(-2);
-            let month = ("0" + (d.getMonth() + 1)).slice(-2);
-            return `${day}-${month}-${d.getFullYear()}`;
-        }
-    }
-    return val;
-}
-
+// ---------------------------------------------------------
+// AMBIL DATA
+// ---------------------------------------------------------
 async function fetchData() {
-    document.getElementById('loader').style.display = 'block';
+    if (fetching) return;
+    fetching = true; $('loader').style.display = 'block'; $('btnSync').disabled = true;
     try {
         const response = await fetch(SCRIPT_URL);
         const result = await response.json();
-        
-        
-        if(result.error) { alert("Error: " + result.error); return; }
-        
-        // Simpan Data Terpisah
-        apkHeaders = result.apk.headers || [];
-        apkData = result.apk.data || [];
-        kedHeaders = result.kedatangan.headers || [];
-        kedData = result.kedatangan.data || [];
-        matHeaders = (result.material || {}).headers || [];
-        matData = (result.material || {}).data || [];
-        bonHeaders = (result.bon || {}).headers || [];
-        bonData = (result.bon || {}).data || [];
+        if (result.error) { alert("Error: " + result.error); return; }
+
+        const part = k => ({ headers: (result[k] || {}).headers || [], data: (result[k] || {}).data || [] });
+        const apk = part('apk'), ked = part('kedatangan'), mat = part('material'), bon = part('bon');
+        apkHeaders = apk.headers; apkData = apk.data;
+        kedHeaders = ked.headers; kedData = ked.data;
+        matHeaders = mat.headers; matData = mat.data;
+        bonHeaders = bon.headers; bonData = bon.data;
         userList = result.users || [];
-        
+        sumCache = null;
+
         populateMaterialFilter();
         if (currentView === 'APK') calculateDashboardMetrics();
         renderTable();
@@ -425,7 +502,7 @@ async function fetchData() {
         console.error(error);
         alert("Gagal sinkronisasi data realtime.");
     } finally {
-        document.getElementById('loader').style.display = 'none';
+        fetching = false; $('loader').style.display = 'none'; $('btnSync').disabled = false;
     }
 }
 
@@ -433,29 +510,18 @@ async function fetchData() {
 // GANTI VIEW + FILTER
 // ---------------------------------------------------------
 const VIEW_TITLES = { APK: 'Surat Permintaan Pengadaan (SPP) Monitoring System', SUMMARY: 'Summary SPP per Client & Periode', KEDATANGAN: 'Data Kedatangan Material System', BON: 'Data Bon Material (Pengambilan Material)' };
-const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const norm = s => String(s == null ? '' : s).trim().toLowerCase();
-const val = id => document.getElementById(id).value;
-const isAll = v => !v || v.startsWith('Semua');
-const dash = n => n === 0 ? '-' : n;
-const sum = (a, k) => a.reduce((s, x) => s + x[k], 0);
-const periodeOrder = p => { const i = BULAN.findIndex(b => norm(p).startsWith(b.toLowerCase())); return i < 0 ? 99 : i; };
-const clientShort = c => /komatsu/i.test(c) ? 'Komatsu' : /sumitomo/i.test(c) ? 'Sumitomo' : (String(c || '').trim() || 'Tanpa Client');
-const clientRank = c => { const i = ['Komatsu', 'Sumitomo'].indexOf(c); return i < 0 ? 9 : i; };
-const noData = s => `<div class="data-info">Data sheet "${s}" belum diterima. Pastikan Code.gs terbaru sudah di-deploy ulang (Deploy → Kelola deployment → Versi baru).</div>`;
 
 function setView(v) {
     currentView = v;
     document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-    document.getElementById('pageTitle').textContent = VIEW_TITLES[v];
-    const show = (id, on, d = '') => { document.getElementById(id).style.display = on ? d : 'none'; };
+    $('pageTitle').textContent = VIEW_TITLES[v];
+    const show = (id, on, d = '') => { $(id).style.display = on ? d : 'none'; };
     const grouped = v === 'SUMMARY' || v === 'BON';
     show('summaryGrid', v === 'APK'); show('clientGrid', v === 'SUMMARY', 'grid');
     show('btnDetail', v === 'APK'); show('btnAdd', v === 'KEDATANGAN' || v === 'BON');
     show('clientFilter', v === 'SUMMARY'); show('periodeFilter', v === 'SUMMARY');
     show('btnExpand', grouped); show('btnCollapse', grouped);
-    document.querySelector('.table-wrapper').style.display = grouped ? 'none' : '';
-    show('groupedView', grouped, 'block');
+    show('tableShell', !grouped); show('groupedView', grouped, 'block');
     populateMaterialFilter();
     if (v === 'APK') calculateDashboardMetrics();
     renderTable();
@@ -467,26 +533,34 @@ function populateMaterialFilter() {
     const idx = src[0].findIndex(h => norm(h) === src[2]);
     const materials = new Set();
     src[1].forEach(row => { if (idx > -1 && row[idx]) materials.add(row[idx]); });
-    fillSelect('materialFilter', 'Semua Material', Array.from(materials).sort());
+    fillSelect('materialFilter', 'Semua Material', Array.from(materials).sort(byName));
     if (currentView === 'SUMMARY') {
         const lines = getSummaryLines();
         fillSelect('clientFilter', 'Semua Client', [...new Set(lines.map(l => l.client))].sort((a, b) => clientRank(a) - clientRank(b)));
         fillSelect('periodeFilter', 'Semua Periode', [...new Set(lines.map(l => l.periode))].sort((a, b) => periodeOrder(a) - periodeOrder(b)));
     }
 }
+// Pilihan filter yang sedang aktif dipertahankan (tidak reset tiap sinkronisasi)
 function fillSelect(id, label, vals) {
-    const s = document.getElementById(id); s.innerHTML = '';
-    [label, ...vals].forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; s.appendChild(o); });
+    const s = $(id), prev = s.value, all = [label, ...vals];
+    s.innerHTML = '';
+    all.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; s.appendChild(o); });
+    s.value = all.includes(prev) ? prev : label;
 }
 
 function renderTable() {
-    if (currentView === 'APK') { renderTableAPK(); setTimeout(() => { applySticky(); }, 50); }
-    else if (currentView === 'KEDATANGAN') renderTableKedatangan();
-    else if (currentView === 'SUMMARY') renderSummary();
-    else renderBon();
+    ({ APK: renderTableAPK, KEDATANGAN: renderTableKedatangan, SUMMARY: renderSummary, BON: renderBon })[currentView]();
 }
 
 function toggleAll(open) { document.querySelectorAll('#groupedView details').forEach(d => { d.open = open; }); }
+
+// Ganti isi tampilan berkelompok, tapi pertahankan dropdown yang sedang terbuka
+function setGrouped(html) {
+    const gv = $('groupedView');
+    const open = new Set([...gv.querySelectorAll('details[open]')].map(d => d.dataset.k).filter(Boolean));
+    gv.innerHTML = html;
+    gv.querySelectorAll('details[data-k]').forEach(d => { if (open.has(d.dataset.k)) d.open = true; });
+}
 
 // ---------------------------------------------------------
 // SUMMARY PER CLIENT & PERIODE (format kolom seperti sheet Data APK)
@@ -494,6 +568,7 @@ function toggleAll(open) { document.querySelectorAll('#groupedView details').for
 // mencatat periode/client, jadi dialokasikan: periode terlama dipenuhi lebih dulu (FIFO).
 // ---------------------------------------------------------
 function getSummaryLines() {
+    if (sumCache) return sumCache;
     const ix = k => matHeaders.findIndex(x => norm(x) === k);
     const [iN, iId, iU, iQ, iS, iC, iP] = ['nama material', 'id material', 'ukuran', 'spp qty', 'satuan', 'client', 'spp periode'].map(ix);
     const kN = kedHeaders.findIndex(x => norm(x) === 'material'), kQ = kedHeaders.findIndex(x => norm(x).includes('jumlah'));
@@ -512,9 +587,12 @@ function getSummaryLines() {
         const groups = {};
         ls.forEach(l => { (groups[l.periode] = groups[l.periode] || []).push(l); });
         Object.keys(groups).sort((a, b) => periodeOrder(a) - periodeOrder(b)).forEach(p => {
-            const g = groups[p], tot = sum(g, 'spp'), give = Math.min(rd, tot); let left = give;
-            g.forEach((l, i) => { l.datang = Math.min(l.spp, i === g.length - 1 ? left : Math.round(give * l.spp / (tot || 1))); left -= l.datang; });
-            rd -= sum(g, 'datang');
+            const g = groups[p], tot = sum(g, 'spp'), give = Math.max(0, Math.min(rd, tot)); let left = give;
+            g.forEach((l, i) => {
+                const share = i === g.length - 1 ? left : Math.round(give * l.spp / (tot || 1));
+                l.datang = Math.max(0, Math.min(l.spp, share)); left -= l.datang;
+            });
+            rd = Math.max(0, rd - sum(g, 'datang'));
         });
         if (rd > 0) ls[ls.length - 1].datang += rd;
         ls.forEach(l => { l.bon = Math.min(rb, l.datang); rb -= l.bon; });
@@ -522,7 +600,7 @@ function getSummaryLines() {
         ls.forEach(l => { l.stock = l.datang - l.bon; l.sisa = l.spp - l.datang; });
         out.push(...ls);
     }
-    return out;
+    return (sumCache = out);
 }
 
 function filteredSummary() {
@@ -537,37 +615,38 @@ function pctOf(ls) {
 }
 
 function renderSummary() {
-    const gv = document.getElementById('groupedView'), grid = document.getElementById('clientGrid');
-    if (!matData.length) { grid.innerHTML = ''; gv.innerHTML = noData('Material'); document.getElementById('dataInfo').textContent = 'Data Material belum tersedia.'; return; }
+    const grid = $('clientGrid');
+    if (!matData.length) { grid.innerHTML = ''; $('groupedView').innerHTML = noData('Material'); setInfo('Data Material belum tersedia.'); return; }
     const lines = filteredSummary(), pf = val('periodeFilter');
     const clients = [...new Set(lines.map(l => l.client))].sort((a, b) => clientRank(a) - clientRank(b));
     grid.innerHTML = clients.map(c => {
         const ls = lines.filter(l => l.client === c), p = pctOf(ls);
-        return `<div class="summary-card client-card client-${c.toLowerCase().replace(/\s/g, '-')} glass-hover-fx">
-            <h3>${c === 'Komatsu' ? '🔵' : c === 'Sumitomo' ? '🟠' : '⚪'} ${c}</h3><small>${ls[0].clientFull}</small>
+        return `<div class="summary-card client-card client-${esc(c.toLowerCase().replace(/\s/g, '-'))} glass-hover-fx">
+            <h3>${c === 'Komatsu' ? '🔵' : c === 'Sumitomo' ? '🟠' : '⚪'} ${esc(c)}</h3><small>${esc(ls[0].clientFull)}</small>
             <div class="stat-row"><div>SPP Total<b>${sum(ls, 'spp')}</b></div><div>Kedatangan<b>${sum(ls, 'datang')}</b></div><div>Total Bon<b>${sum(ls, 'bon')}</b></div><div>Stock Gudang<b>${sum(ls, 'stock')}</b></div></div>
             <div class="perf-info"><span>${ls.filter(l => l.sisa > 0).length} item masih kurang</span><span>${p}% Terpenuhi</span></div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${p}%"></div></div></div>`;
     }).join('');
-    gv.innerHTML = `<div class="data-info" style="margin:0 0 10px">Kedatangan, Total Bon &amp; Stock per periode dialokasikan otomatis (periode SPP terlama dipenuhi lebih dulu), karena sheet Kedatangan &amp; Bon tidak mencatat periode/client.</div>` +
-        clients.map(c => {
-            const ls = lines.filter(l => l.client === c);
-            const periods = [...new Set(ls.map(l => l.periode))].sort((a, b) => periodeOrder(a) - periodeOrder(b));
-            return `<div class="client-title">${c}</div>` + periods.map(p => periodBlock(ls.filter(l => l.periode === p), p, !isAll(pf))).join('');
-        }).join('') || '<div class="data-info">Tidak ada data ditemukan.</div>';
-    document.getElementById('dataInfo').innerHTML = `Menampilkan <b>${lines.length}</b> baris SPP dari <b>${clients.length}</b> client.`;
+    const note = `<div class="data-info flush"><span>Kedatangan, Total Bon &amp; Stock per periode dialokasikan otomatis (periode SPP terlama dipenuhi lebih dulu), karena sheet Kedatangan &amp; Bon tidak mencatat periode/client.</span></div>`;
+    const body = clients.map(c => {
+        const ls = lines.filter(l => l.client === c);
+        const periods = [...new Set(ls.map(l => l.periode))].sort((a, b) => periodeOrder(a) - periodeOrder(b));
+        return `<div class="client-title">${esc(c)}</div>` + periods.map(p => periodBlock(ls.filter(l => l.periode === p), p, !isAll(pf), `P:${c}|${p}`)).join('');
+    }).join('');
+    setGrouped(note + (body || emptyMsg('Tidak ada data ditemukan.')));
+    setInfo(`Menampilkan <b>${lines.length}</b> baris SPP dari <b>${clients.length}</b> client.`);
 }
 
-function periodBlock(ls, p, open) {
+function periodBlock(ls, p, open, key) {
     const kurang = ls.filter(l => l.sisa > 0).length, pc = pctOf(ls);
-    const rows = ls.slice().sort((a, b) => String(a.nama).localeCompare(String(b.nama))).map((l, i) => {
+    const rows = ls.slice().sort((a, b) => byName(a.nama, b.nama)).map((l, i) => {
         const minus = l.sisa > 0, cls = minus ? 'badge-danger' : 'badge-success';
-        return `<tr><td>${i + 1}</td><td style="text-align:left">${minus ? '⚠️ ' : ''}${l.nama}</td><td>${l.id}</td><td>${l.ukuran}</td><td>${l.spp}</td><td>${l.satuan}</td>
-            <td>${l.datang === 0 ? '<span style="color:#ef4444;font-weight:bold">-</span>' : `<span class="badge ${cls}">${minus ? '' : '✨ '}${l.datang}</span>`}</td>
+        return `<tr><td>${i + 1}</td><td class="td-left">${minus ? '⚠️ ' : ''}${esc(l.nama)}</td><td>${esc(l.id)}</td><td>${esc(l.ukuran)}</td><td>${l.spp}</td><td>${esc(l.satuan)}</td>
+            <td>${l.datang === 0 ? '<span class="dash-red">-</span>' : `<span class="badge ${cls}">${minus ? '' : '✨ '}${l.datang}</span>`}</td>
             <td><span class="badge ${cls}">${minus ? '-' + l.sisa : 'Terpenuhi'}</span></td><td>${dash(l.bon)}</td><td>${dash(l.stock)}</td></tr>`;
     }).join('');
     const heads = ['No', 'Nama Material', 'ID Material', 'Ukuran', 'SPP Total', 'Satuan', 'Kedatangan', 'Remark', 'Total Bon', 'Stock Gudang'].map(h => `<th>${h}</th>`).join('');
-    return `<details class="acc" ${open ? 'open' : ''}><summary><span>📆 ${p}</span><span class="acc-meta"><span>${ls.length} item</span><span>SPP ${sum(ls, 'spp')}</span><span>Datang ${sum(ls, 'datang')}</span>
+    return `<details class="acc" data-k="${esc(key)}" ${open ? 'open' : ''}><summary><span>📆 ${esc(p)}</span><span class="acc-meta"><span>${ls.length} item</span><span>SPP ${sum(ls, 'spp')}</span><span>Datang ${sum(ls, 'datang')}</span>
         <div class="progress-bar-bg mini-bar"><div class="progress-bar-fill" style="width:${pc}%"></div></div>
         <span class="badge ${kurang ? 'badge-danger' : 'badge-success'}">${kurang ? kurang + ' item kurang' : pc + '% Terpenuhi'}</span></span></summary>
         <div class="acc-body"><table class="nested-table"><thead><tr>${heads}</tr></thead><tbody>${rows}
@@ -578,16 +657,9 @@ function periodBlock(ls, p, open) {
 // ---------------------------------------------------------
 // BON MATERIAL: Bulan > Tanggal > Material (dropdown)
 // ---------------------------------------------------------
-function parseDate(v) {
-    if (!v) return null;
-    const m = String(v).match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-    if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
-    const d = new Date(v); return isNaN(d) ? null : d;
-}
-
 function renderBon() {
-    const gv = document.getElementById('groupedView'), mat = val('materialFilter');
-    if (!bonData.length) { gv.innerHTML = noData('Bon Material'); document.getElementById('dataInfo').textContent = 'Data Bon Material belum tersedia.'; return; }
+    const mat = val('materialFilter');
+    if (!bonData.length) { $('groupedView').innerHTML = noData('Bon Material'); setInfo('Data Bon Material belum tersedia.'); return; }
     const months = {}; let n = 0;
     bonData.forEach(r => {
         if (!isAll(mat) && r[0] !== mat) return;
@@ -600,256 +672,168 @@ function renderBon() {
     const qsum = a => a.reduce((s, i) => s + i.qty, 0);
     const bulan = d => d ? `${BULAN[d.getMonth()]} ${d.getFullYear()}` : 'Tanpa Tanggal';
     const hari = d => d ? `${String(d.getDate()).padStart(2, '0')} ${bulan(d)}` : 'Tanpa Tanggal';
-    gv.innerHTML = Object.keys(months).sort().reverse().map(mk => {
+    const html = Object.keys(months).sort().reverse().map(mk => {
         const M = months[mk], dks = Object.keys(M.days).sort().reverse(), items = dks.flatMap(k => M.days[k].items);
-        return `<details class="acc"><summary><span>🗓️ ${bulan(M.d)}</span><span class="acc-meta"><span>${dks.length} hari bon</span><span>${items.length} pengambilan</span><span class="badge badge-success">Total ${qsum(items)}</span></span></summary><div class="acc-body">` +
+        return `<details class="acc" data-k="M:${esc(mk)}"><summary><span>🗓️ ${bulan(M.d)}</span><span class="acc-meta"><span>${dks.length} hari bon</span><span>${items.length} pengambilan</span><span class="badge badge-success">Total ${qsum(items)}</span></span></summary><div class="acc-body">` +
             dks.map(dk => {
                 const D = M.days[dk];
-                const rows = D.items.map(i => `<tr><td style="text-align:left">${i.nama}</td><td>${i.id}</td><td>${i.ukuran}</td><td><b>${i.qty}</b></td><td>${i.remark || '-'}</td>${session ? `<td><button class="btn-edit" onclick="openForm(${i.row})">✏️ Edit</button></td>` : ''}</tr>`).join('');
-                return `<details class="acc"><summary><span>📅 ${hari(D.d)}</span><span class="acc-meta"><span>${D.items.length} material</span><span class="badge badge-success">Total ${qsum(D.items)}</span></span></summary>
+                const rows = D.items.map(i => `<tr><td class="td-left">${esc(i.nama)}</td><td>${esc(i.id)}</td><td>${esc(i.ukuran)}</td><td><b>${i.qty}</b></td><td>${esc(i.remark || '-')}</td>${session ? `<td>${i.row ? `<button class="btn-edit" onclick="openForm(${Number(i.row)})">✏️ Edit</button>` : ''}</td>` : ''}</tr>`).join('');
+                return `<details class="acc" data-k="D:${esc(dk)}"><summary><span>📅 ${hari(D.d)}</span><span class="acc-meta"><span>${D.items.length} material</span><span class="badge badge-success">Total ${qsum(D.items)}</span></span></summary>
                     <div class="acc-body"><table class="nested-table"><thead><tr><th>Nama Material</th><th>ID Material</th><th>Ukuran</th><th>Jumlah</th><th>Remark</th>${session ? '<th>Aksi</th>' : ''}</tr></thead><tbody>${rows}</tbody></table></div></details>`;
             }).join('') + `</div></details>`;
-    }).join('') || '<div class="data-info">Tidak ada data bon ditemukan.</div>';
-    document.getElementById('dataInfo').innerHTML = `Menampilkan <b>${n}</b> pengambilan material dalam <b>${Object.keys(months).length}</b> bulan (terbaru di atas).`;
+    }).join('');
+    setGrouped(html || emptyMsg('Tidak ada data bon ditemukan.'));
+    setInfo(`Menampilkan <b>${n}</b> pengambilan material dalam <b>${Object.keys(months).length}</b> bulan (terbaru di atas).`);
 }
 
 // ---------------------------------------------------------
-// RENDER MODE 1: APK (Kode Asli SPP)
+// RENDER MODE 1: APK (Monitoring SPP)
 // ---------------------------------------------------------
 function renderTableAPK() {
-    const tbody = document.querySelector('#dataTable tbody');
-    const thead = document.querySelector('#dataTable thead');
-    tbody.innerHTML = ''; thead.innerHTML = '';
-    
-    let trHead = document.createElement('tr');
-    apkHeaders.forEach(h => { let th = document.createElement('th'); th.textContent = h; trHead.appendChild(th); });
-    thead.appendChild(trHead);
-    
-    const materialIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
-    const sppTotalIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'spp total');
-    const kedatanganIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'kedatangan');
-    const selMaterial = document.getElementById('materialFilter').value;
-    
-    let filteredData = apkData.filter(row => {
-        return selMaterial === 'Semua Material' || (materialIdx > -1 && row[materialIdx] == selMaterial);
-    });
-    
-    filteredData.forEach(row => {
-        let tr = document.createElement('tr');
-        tr.className = 'normal-row';
-        tr.addEventListener('click', function() {
-            document.querySelectorAll('#dataTable tbody tr').forEach(r => r.classList.remove('selected-row'));
-            this.classList.add('selected-row');
-        });
+    const tbody = document.querySelector('#dataTable tbody'), thead = document.querySelector('#dataTable thead');
+    const H = apkHeaders.map(norm);
+    const iMat = H.indexOf('nama material'), iSpp = H.indexOf('spp total'), iDatang = H.indexOf('kedatangan');
+    const sel = val('materialFilter');
+    const rows = apkData.filter(r => isAll(sel) || (iMat > -1 && r[iMat] == sel));
 
-        let sppVal = formatWholeNumber(row[sppTotalIdx]);
-        let datangVal = formatWholeNumber(row[kedatanganIdx]);
-        let statusMinus = datangVal - sppVal < 0;
+    thead.innerHTML = '<tr>' + apkHeaders.map(h => `<th>${esc(h)}</th>`).join('') + '</tr>';
+    tbody.innerHTML = rows.map(row => {
+        const sppVal = formatWholeNumber(row[iSpp]), datangVal = formatWholeNumber(row[iDatang]);
+        const minus = datangVal - sppVal < 0;
+        const tds = apkHeaders.map((h, i) => {
+            const hl = H[i];
+            let c = row[i] !== undefined && row[i] !== null ? row[i] : '';
+            if (hl === 'spp total' || hl === 'kedatangan') { const n = formatWholeNumber(c); c = n === 0 ? '-' : n; }
+            else { c = formatDate(c); if (isEmpty(c)) c = '-'; }
 
-        apkHeaders.forEach((h, i) => {
-            let td = document.createElement('td');
-            let cellValue = row[i] !== undefined && row[i] !== null ? row[i] : '';
-            let hLower = h.toString().toLowerCase().trim();
-
-            if (hLower === 'spp total' || hLower === 'kedatangan') {
-                let numValue = formatWholeNumber(cellValue); cellValue = numValue === 0 ? '-' : numValue;
-            } else {
-                cellValue = formatDate(cellValue); if (cellValue === 0 || cellValue === '0') cellValue = '-';
+            if (minus && (hl === 'kedatangan' || hl === 'nama material')) {
+                if (c === '-') return `<td><span class="dash-red">-</span></td>`;
+                return `<td><span class="${hl === 'kedatangan' ? 'badge badge-danger' : ''}">${hl === 'nama material' ? '⚠️ ' : ''}${esc(c)}</span></td>`;
             }
-            
-            if (statusMinus && (hLower === 'kedatangan' || hLower === 'nama material')) {
-                let badgeClass = (hLower === 'kedatangan' && cellValue !== '-') ? 'badge badge-danger' : (cellValue === '-' ? 'badge' : '');
-                let prefix = hLower === 'nama material' ? '⚠️ ' : '';
-                if (cellValue === '-') td.innerHTML = `<span style="color:#ef4444; font-weight:bold;">-</span>`;
-                else td.innerHTML = `<span class="${badgeClass}">${prefix}${cellValue}</span>`;
-            } else if (!statusMinus && hLower === 'kedatangan' && datangVal > 0) {
-                td.innerHTML = `<span class="badge badge-success">✨ ${cellValue}</span>`;
-            } else { td.textContent = cellValue; }
-            tr.appendChild(td);
+            if (!minus && hl === 'kedatangan' && datangVal > 0) return `<td><span class="badge badge-success">✨ ${esc(c)}</span></td>`;
+            if (hl === 'remark' && c !== '-') {
+                const t = String(c).trim();
+                if (/^terpenuhi$/i.test(t)) return `<td><span class="badge badge-success">${esc(t)}</span></td>`;
+                if (/^-\s*\d/.test(t)) return `<td><span class="badge badge-danger">${esc(t)}</span></td>`;
+            }
+            return `<td>${c === '-' ? '<span class="dash-muted">-</span>' : esc(c)}</td>`;
+        }).join('');
+        return `<tr class="normal-row">${tds}</tr>`;
+    }).join('') || `<tr><td colspan="${apkHeaders.length || 1}" style="padding:30px;color:#64748b">Tidak ada data ditemukan.</td></tr>`;
+
+    setInfo(`Menampilkan <b>${rows.length}</b> dari <b>${apkData.length}</b> data keseluruhan.`);
+    applySticky();
+}
+
+// Kolom yang dibekukan saat scroll horizontal. Lebar dihitung dari header sebenarnya.
+const STICKY_COLS = ['nama material', 'id material'];
+function applySticky() {
+    const table = $('dataTable'), headRow = table.querySelector('thead tr');
+    table.querySelectorAll('.sticky-col').forEach(el => { el.classList.remove('sticky-col', 'sticky-edge'); el.style.removeProperty('--sx'); });
+    if (currentView !== 'APK' || !headRow || !table.tBodies[0].rows.length) return;
+    const cols = [...headRow.cells].map((th, i) => ({ th, i })).filter(c => STICKY_COLS.includes(norm(c.th.textContent)));
+    let left = 0;
+    cols.forEach((c, n) => {
+        [c.th, ...Array.from(table.tBodies[0].rows, r => r.cells[c.i])].filter(Boolean).forEach(el => {
+            el.classList.add('sticky-col'); el.classList.toggle('sticky-edge', n === cols.length - 1);
+            el.style.setProperty('--sx', left + 'px');
         });
-        tbody.appendChild(tr);
+        left += c.th.offsetWidth;
     });
-    document.getElementById('dataInfo').innerHTML = `Menampilkan <b>${filteredData.length}</b> dari <b>${apkData.length}</b> data keseluruhan.`;
 }
 
 // ---------------------------------------------------------
 // RENDER MODE 2: KEDATANGAN MATERIAL (Accordion Mode)
 // ---------------------------------------------------------
+function kedIdx() {
+    const H = kedHeaders.map(norm), has = s => H.findIndex(x => x.includes(s));
+    return { sj: has('surat jalan'), tgl: has('tanggal'), mat: H.indexOf('material'),
+             tipe: H.findIndex(x => x.includes('tipe') || x.includes('ukuran')), qty: has('jumlah'), kond: has('kondisi') };
+}
+
 function renderTableKedatangan() {
-    const tbody = document.querySelector('#dataTable tbody');
-    const thead = document.querySelector('#dataTable thead');
-    tbody.innerHTML = ''; thead.innerHTML = '';
-    
-    // Cari Index Kolom berdasarkan gambar Anda
-    const idxSj = kedHeaders.findIndex(h => h.toString().toLowerCase().includes('surat jalan'));
-    const idxTgl = kedHeaders.findIndex(h => h.toString().toLowerCase().includes('tanggal'));
-    const idxMat = kedHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'material');
-    const idxTipe = kedHeaders.findIndex(h => h.toString().toLowerCase().includes('tipe') || h.toString().toLowerCase().includes('ukuran'));
-    const idxMasuk = kedHeaders.findIndex(h => h.toString().toLowerCase().includes('jumlah'));
-    const idxKond = kedHeaders.findIndex(h => h.toString().toLowerCase().includes('kondisi'));
+    const tbody = document.querySelector('#dataTable tbody'), thead = document.querySelector('#dataTable thead');
+    const ix = kedIdx(), sel = val('materialFilter'), groups = new Map();
+    let count = 0;
 
-    const selMaterial = document.getElementById('materialFilter').value;
-    
-    // Grouping Logika
-    let groupedData = {};
-    let countDetail = 0;
-
-    kedData.forEach(row => {
-        let matName = row[idxMat] || 'Unknown';
-        if (selMaterial !== 'Semua Material' && matName !== selMaterial) return;
-        
-        let tipe = row[idxTipe] || '-';
-        let key = matName + '|' + tipe; // Kunci unik dari Nama & Tipe
-        
-        if (!groupedData[key]) {
-            groupedData[key] = {
-                material: matName,
-                tipe: tipe,
-                totalMasuk: 0,
-                details: []
-            };
-        }
-        
-        let qty = formatWholeNumber(row[idxMasuk]);
-        groupedData[key].totalMasuk += qty;
-        groupedData[key].details.push({
-            sj: row[idxSj] || '-',
-            tgl: formatDate(row[idxTgl]) || '-',
-            qty: qty,
-            kondisi: row[idxKond] || '-',
-            row: row[7]
-        });
-        countDetail++;
+    kedData.forEach(r => {
+        const mat = r[ix.mat] || 'Unknown';
+        if (!isAll(sel) && mat !== sel) return;
+        const tipe = r[ix.tipe] || '-', key = mat + '|' + tipe;
+        if (!groups.has(key)) groups.set(key, { material: mat, tipe, total: 0, details: [] });
+        const g = groups.get(key), qty = formatWholeNumber(r[ix.qty]);
+        g.total += qty;
+        g.details.push({ sj: r[ix.sj] || '-', tgl: formatDate(r[ix.tgl]) || '-', qty, kondisi: String(r[ix.kond] || '-'), row: r[7] });
+        count++;
     });
 
-    // Bikin Header Utama
-    thead.innerHTML = `
-        <tr>
-            <th style="width:50px;"></th>
-            <th style="text-align:left;">Nama Material</th>
-            <th style="text-align:left;">Tipe / Ukuran</th>
-            <th>Total Akumulasi Masuk</th>
-        </tr>
-    `;
+    thead.innerHTML = `<tr><th style="width:50px"></th><th class="td-left">Nama Material</th><th class="td-left">Tipe / Ukuran</th><th>Total Akumulasi Masuk</th></tr>`;
 
-    // Looping Data Group
     let html = '';
-    let groupId = 0;
-    
-    for (let key in groupedData) {
-        let g = groupedData[key];
-        let rowId = 'group-' + groupId;
-        
-        // Baris Induk (Parent)
-        html += `
-        <tr class="accordion-parent" id="parent-${rowId}" onclick="toggleAccordion('${rowId}')">
-            <td><span class="icon-arrow" id="icon-${rowId}">▶</span></td>
-            <td style="text-align:left; color:#1e293b;">${g.material}</td>
-            <td style="text-align:left; color:#475569;">${g.tipe}</td>
-            <td><span class="badge badge-success" style="font-size: 14px;">+ ${g.totalMasuk}</span></td>
-        </tr>
-        `;
-        
-        // Baris Anak (Child / Detail) - Disembunyikan secara default
-        let detailRows = g.details.map(d => {
-            let badgeClass = d.kondisi.toLowerCase().includes('bagus') ? 'badge-success' : 'badge-danger';
-            return `
-            <tr>
-                <td style="text-align:center;">${d.sj}</td>
-                <td style="text-align:center;">${d.tgl}</td>
-                <td style="text-align:center; font-weight:700;">${d.qty}</td>
-                <td style="text-align:center;"><span class="badge ${badgeClass}">${d.kondisi}</span></td>
-                ${session ? `<td style="text-align:center;">${d.row ? `<button class="btn-edit" onclick="openForm(${d.row})">✏️ Edit</button>` : ''}</td>` : ''}
-            </tr>`;
+    groups.forEach((g, key) => {
+        const open = openKed.has(key);
+        html += `<tr class="accordion-parent${open ? ' expanded' : ''}" data-k="${esc(key)}">
+            <td><span class="icon-arrow">▶</span></td>
+            <td class="td-left" style="color:#1e293b">${esc(g.material)}</td>
+            <td class="td-left" style="color:#475569">${esc(g.tipe)}</td>
+            <td><span class="badge badge-success" style="font-size:14px">+ ${g.total}</span></td></tr>`;
+        const detailRows = g.details.map(d => {
+            const ok = d.kondisi.toLowerCase().includes('bagus');
+            return `<tr><td>${esc(d.sj)}</td><td>${esc(d.tgl)}</td><td><b>${d.qty}</b></td>
+                <td><span class="badge ${ok ? 'badge-success' : 'badge-danger'}">${esc(d.kondisi)}</span></td>
+                ${session ? `<td>${d.row ? `<button class="btn-edit" onclick="openForm(${Number(d.row)})">✏️ Edit</button>` : ''}</td>` : ''}</tr>`;
         }).join('');
-
-        html += `
-        <tr id="detail-${rowId}" style="display:none; background: rgba(255,255,255,0.3);">
-            <td colspan="4" style="padding:0;">
-                <table class="nested-table">
-                    <thead>
-                        <tr>
-                            <th style="text-align:center;">No. Surat Jalan</th>
-                            <th style="text-align:center;">Tanggal Datang</th>
-                            <th style="text-align:center;">Jumlah Qty</th>
-                            <th style="text-align:center;">Kondisi</th>
-                            ${session ? '<th style="text-align:center;">Aksi</th>' : ''}
-                        </tr>
-                    </thead>
-                    <tbody>${detailRows}</tbody>
-                </table>
-            </td>
-        </tr>
-        `;
-        groupId++;
-    }
-
-    if(Object.keys(groupedData).length === 0){
-        html = `<tr><td colspan="4" style="padding:30px; color:#64748b;">Tidak ada data kedatangan ditemukan.</td></tr>`;
-    }
-
-    tbody.innerHTML = html;
-    document.getElementById('dataInfo').innerHTML = `Menampilkan <b>${Object.keys(groupedData).length}</b> Grup Material dari <b>${countDetail}</b> riwayat kedatangan.`;
-}
-
-// Fungsi Trigger Buka/Tutup Accordion
-function toggleAccordion(rowId) {
-    let detailRow = document.getElementById('detail-' + rowId);
-    let parentRow = document.getElementById('parent-' + rowId);
-    if (detailRow.style.display === 'none') {
-        detailRow.style.display = 'table-row';
-        parentRow.classList.add('expanded');
-    } else {
-        detailRow.style.display = 'none';
-        parentRow.classList.remove('expanded');
-    }
-}
-
-function calculateDashboardMetrics() {
-    // Fungsi logikanya sama seperti milik Anda (hanya dijalankan saat mode SPP)
-    const materialIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'nama material');
-    const sppTotalIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'spp total');
-    const kedatanganIdx = apkHeaders.findIndex(h => h.toString().toLowerCase().trim() === 'kedatangan');
-    if (materialIdx === -1 || sppTotalIdx === -1 || kedatanganIdx === -1) return;
-
-    let minusMap = {}; let totalSppGlobal = 0; let totalDatangGlobal = 0;
-    apkData.forEach(row => {
-        let matName = row[materialIdx]; let sppQty = formatWholeNumber(row[sppTotalIdx]); let datangQty = formatWholeNumber(row[kedatanganIdx]);
-        let sisa = datangQty - sppQty; 
-        if (matName) {
-            if (sisa < 0) minusMap[matName] = (minusMap[matName] || 0) + sisa;
-            let effectiveDatang = datangQty > sppQty ? sppQty : datangQty;
-            totalSppGlobal += sppQty; totalDatangGlobal += effectiveDatang;
-        }
+        html += `<tr class="detail-row${open ? ' open' : ''}"><td colspan="4">
+            <table class="nested-table"><thead><tr><th>No. Surat Jalan</th><th>Tanggal Datang</th><th>Jumlah Qty</th><th>Kondisi</th>${session ? '<th>Aksi</th>' : ''}</tr></thead>
+            <tbody>${detailRows}</tbody></table></td></tr>`;
     });
 
-    const minusContent = document.getElementById('minusContent');
-    if (Object.keys(minusMap).length === 0) {
-        minusContent.innerHTML = "<p style='color:#059669; margin:0;'>✨ Semua material telah terpenuhi sempurna.</p>";
-    } else {
-        let htmlMinus = '<ul class="summary-list">';
-        for (let mat in minusMap) { htmlMinus += `<li>${mat}: <span style="color:#ef4444;">${minusMap[mat]}</span></li>`; }
-        htmlMinus += '</ul>'; minusContent.innerHTML = htmlMinus;
-    }
+    tbody.innerHTML = html || `<tr><td colspan="4" style="padding:30px;color:#64748b">Tidak ada data kedatangan ditemukan.</td></tr>`;
+    setInfo(`Menampilkan <b>${groups.size}</b> Grup Material dari <b>${count}</b> riwayat kedatangan.`);
+    applySticky();
+}
 
-    const perfContent = document.getElementById('perfContent');
-    let pct = totalSppGlobal > 0 ? (totalDatangGlobal / totalSppGlobal) * 100 : 0;
-    if (Object.keys(minusMap).length > 0) { pct = Math.floor(pct); if (pct >= 100) pct = 99; } 
-    else { pct = Math.round(pct); if (pct > 100) pct = 100; }
+// Buka/tutup grup kedatangan; statusnya diingat agar tidak menutup sendiri saat data di-refresh
+function toggleGroup(tr) {
+    const open = !tr.classList.contains('expanded'), key = tr.dataset.k;
+    tr.classList.toggle('expanded', open);
+    tr.nextElementSibling.classList.toggle('open', open);
+    if (open) openKed.add(key); else openKed.delete(key);
+}
 
-    perfContent.innerHTML = `
+// ---------------------------------------------------------
+// DASHBOARD SPP (ringkasan minus & persentase)
+// ---------------------------------------------------------
+function calculateDashboardMetrics() {
+    const H = apkHeaders.map(norm);
+    const iMat = H.indexOf('nama material'), iSpp = H.indexOf('spp total'), iDatang = H.indexOf('kedatangan');
+    if (iMat === -1 || iSpp === -1 || iDatang === -1) return;
+
+    const minusMap = {}; let totalSpp = 0, totalDatang = 0;
+    apkData.forEach(row => {
+        const name = row[iMat], spp = formatWholeNumber(row[iSpp]), datang = formatWholeNumber(row[iDatang]), sisa = datang - spp;
+        if (!name) return;
+        if (sisa < 0) minusMap[name] = (minusMap[name] || 0) + sisa;
+        totalSpp += spp; totalDatang += Math.min(datang, spp);
+    });
+
+    const hasMinus = Object.keys(minusMap).length > 0;
+    $('minusContent').innerHTML = hasMinus
+        ? '<ul class="summary-list">' + Object.keys(minusMap).map(m => `<li>${esc(m)}: <span style="color:#ef4444">${minusMap[m]}</span></li>`).join('') + '</ul>'
+        : "<p style='color:#059669;margin:0'>✨ Semua material telah terpenuhi sempurna.</p>";
+
+    let pct = totalSpp > 0 ? (totalDatang / totalSpp) * 100 : 0;
+    pct = hasMinus ? Math.min(99, Math.floor(pct)) : Math.min(100, Math.round(pct));
+    $('perfContent').innerHTML = `
         <div class="perf-item">
             <div class="perf-info"><span>Total Pemenuhan Material Akumulatif</span><span>${pct}% Terpenuhi</span></div>
-            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
         </div>`;
 }
 
 // ---------------------------------------------------------
 // FORM TAMBAH / EDIT (Kedatangan manual & Bon Material)
 // ---------------------------------------------------------
-const esc = s => String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
-const toInputDate = v => { const d = parseDate(v) || new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-
 // Daftar barang untuk dropdown ID, diambil dari Data APK (kolom Nama Material, ID Material, Ukuran).
 // Material & ukuran TIDAK diisi di form: di sheet sudah otomatis oleh rumus, form hanya menampilkannya sebagai keterangan ID.
 function barangList() {
@@ -859,33 +843,32 @@ function barangList() {
         .filter(b => b.id && !seen.has(b.id) && seen.add(b.id))
         .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 }
-const barangLabel = b => `${b.id} — ${b.nama}${b.ukuran ? ' — ' + b.ukuran : ''}`;
 
 const pkText = b => `<b class="pk-id">${esc(b.id)}</b><span class="pk-sub"><span class="pk-name">${esc(b.nama)}</span>${b.ukuran ? `<em class="pk-size">${esc(b.ukuran)}</em>` : ''}</span>`;
 function pkShow() {
     const b = formList.find(x => x.id === val('f_id'));
-    document.getElementById('pk_btn_txt').innerHTML = b ? pkText(b) : '<span class="pk-ph">Pilih ID barang…</span>';
+    $('pk_btn_txt').innerHTML = b ? pkText(b) : '<span class="pk-ph">Pilih ID barang…</span>';
 }
 function pkRender(q) {
     const k = norm(q), cur = val('f_id');
     const items = formList.filter(b => !k || norm(b.id + ' ' + b.nama + ' ' + b.ukuran).includes(k));
-    document.getElementById('pk_list').innerHTML = items.length
+    $('pk_list').innerHTML = items.length
         ? items.map(b => `<div class="pk-opt${b.id === cur ? ' sel' : ''}" role="option" data-id="${esc(b.id)}">${pkText(b)}</div>`).join('')
         : '<div class="pk-empty">Tidak ada yang cocok.</div>';
 }
 function pkToggle(force) {
-    const p = document.getElementById('pk_panel'), btn = document.getElementById('pk_btn');
+    const p = $('pk_panel'), btn = $('pk_btn');
     const open = typeof force === 'boolean' ? force : !p.classList.contains('open');
     p.classList.toggle('open', open); btn.classList.toggle('open', open); btn.setAttribute('aria-expanded', open);
     if (!open) return;
-    const q = document.getElementById('pk_q'); q.value = ''; pkRender('');
+    const q = $('pk_q'); q.value = ''; pkRender('');
     if (window.matchMedia && matchMedia('(pointer: fine)').matches) q.focus();
     const sel = p.querySelector('.pk-opt.sel'); if (sel) sel.scrollIntoView({ block: 'nearest' });
 }
-function pkPick(id) { document.getElementById('f_id').value = id; pkShow(); pkToggle(false); }
+function pkPick(id) { $('f_id').value = id; pkShow(); pkToggle(false); }
 function pkKey(e) {
     if (e.key === 'Enter') { e.preventDefault(); const o = document.querySelector('#pk_list .pk-opt'); if (o) pkPick(o.dataset.id); }
-    else if (e.key === 'Escape') { e.stopPropagation(); pkToggle(false); document.getElementById('pk_btn').focus(); }
+    else if (e.key === 'Escape') { e.stopPropagation(); pkToggle(false); $('pk_btn').focus(); }
 }
 
 function openForm(row) {
@@ -906,21 +889,21 @@ function openForm(row) {
         <div class="pk-btn" id="pk_btn" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" onclick="pkToggle()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();pkToggle();}"><div class="pk-btn-txt" id="pk_btn_txt"></div></div>
         <div class="pk-panel" id="pk_panel"><input id="pk_q" type="search" placeholder="Cari ID, material, atau ukuran…" autocomplete="off" oninput="pkRender(this.value)" onkeydown="pkKey(event)"><div class="pk-list" id="pk_list" role="listbox"></div></div></div>`;
     const tgl = f('Tanggal', `<input id="f_tgl" type="date" value="${toInputDate(rec && rec[isBon ? 4 : 1])}">`);
-    document.getElementById('formBody').innerHTML = isBon
+    $('formBody').innerHTML = isBon
         ? sel + f('Jumlah', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[3]) : ''}">`) + tgl + f('Remark', `<input id="f_remark" value="${rec ? esc(rec[5]) : ''}">`)
         : f('No. Surat Jalan', `<input id="f_sj" value="${rec ? esc(rec[0]) : ''}">`) + tgl + sel + f('Jumlah Masuk', `<input id="f_qty" type="number" min="1" value="${rec ? esc(rec[5]) : ''}">`)
             + f('Kondisi', `<input id="f_kondisi" list="dlKondisi" value="${rec ? esc(rec[6]) : 'Bagus'}"><datalist id="dlKondisi"><option>Bagus</option><option>Rusak</option></datalist>`);
-    document.getElementById('formTitle').textContent = (row ? 'Edit ' : 'Tambah ') + (isBon ? 'Bon Material' : 'Kedatangan Material');
-    document.getElementById('formError').textContent = '';
+    $('formTitle').textContent = (row ? 'Edit ' : 'Tambah ') + (isBon ? 'Bon Material' : 'Kedatangan Material');
+    $('formError').textContent = '';
     formCtx = { isBon, row };
     pkShow();
-    document.getElementById('pk_list').onclick = e => { const o = e.target.closest('.pk-opt'); if (o) pkPick(o.dataset.id); };
-    document.getElementById('formModal').classList.add('active');
+    $('pk_list').onclick = e => { const o = e.target.closest('.pk-opt'); if (o) pkPick(o.dataset.id); };
+    $('formModal').classList.add('active');
 }
-function closeForm() { document.getElementById('formModal').classList.remove('active'); }
+function closeForm() { $('formModal').classList.remove('active'); }
 
 async function saveForm() {
-    const err = document.getElementById('formError'), btn = document.getElementById('btnSave'), { isBon, row } = formCtx;
+    const err = $('formError'), btn = $('btnSave'), { isBon, row } = formCtx;
     const b = formList.find(x => x.id === val('f_id')), qty = Number(val('f_qty')), tgl = val('f_tgl');
     if (!b || !(qty > 0) || !tgl || (!isBon && !val('f_sj').trim())) { err.textContent = isBon ? 'Pilih ID material, isi jumlah (> 0) dan tanggal.' : 'Isi No. Surat Jalan, pilih ID barang, isi jumlah (> 0) dan tanggal.'; return; }
     // nama & ukuran ikut dikirim hanya agar kompatibel dengan Code.gs lama; Code.gs baru memakai rumus untuk kolom tersebut
@@ -935,56 +918,74 @@ async function saveForm() {
     finally { btn.disabled = false; }
 }
 
-function applySticky() {
-    const table = document.getElementById('dataTable');
-    const tbody = table.querySelector('tbody');
-    if(!tbody || tbody.rows.length === 0) return;
-    
-    const freezeCols = ['id material', 'nama material']; let currentLeft = 0; let frozenIndices = [];
-    const trTopCells = Array.from(table.querySelector('thead tr').cells);
-    
-    trTopCells.forEach((th, domIndex) => { if(freezeCols.includes(th.textContent.trim().toLowerCase())) frozenIndices.push(domIndex); });
-
-    frozenIndices.forEach(domIdx => {
-        let colWidth = 0;
-        for(let j = 0; j < tbody.rows.length; j++) {
-            let td = tbody.rows[j].cells[domIdx];
-            if(td) {
-                td.style.position = 'sticky'; td.style.left = currentLeft + 'px'; td.style.zIndex = '10';
-                td.style.background = 'rgba(255, 255, 255, 0.7)'; td.style.backdropFilter = 'blur(10px)';
-                td.style.boxShadow = '2px 0 10px rgba(0,0,0,0.03)';
-                if(j === 0) colWidth = td.offsetWidth;
-            }
-        }
-        const thTop = trTopCells[domIdx];
-        if(thTop) { thTop.style.position = 'sticky'; thTop.style.left = currentLeft + 'px'; thTop.style.zIndex = '30'; thTop.style.background = 'rgba(255, 255, 255, 0.85)'; }
-        currentLeft += colWidth;
-    });
-}
-
+// ---------------------------------------------------------
+// CETAK & EXPORT
+// ---------------------------------------------------------
 function printReport() {
-    document.getElementById('printDate').textContent = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    $('printDate').textContent = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     window.print();
 }
 
+// Export dibuat dari data (bukan dari tampilan), supaya file Excel bersih tanpa emoji/badge
 function exportExcel() {
-    let wb;
+    if (typeof XLSX === 'undefined') { alert('Library Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.'); return; }
+    const mat = val('materialFilter');
+    let ws, name = currentView;
     if (currentView === 'SUMMARY') {
-        const rows = filteredSummary().sort((a, b) => clientRank(a.client) - clientRank(b.client) || periodeOrder(a.periode) - periodeOrder(b.periode) || String(a.nama).localeCompare(String(b.nama)))
+        name = 'Summary';
+        const rows = filteredSummary().sort((a, b) => clientRank(a.client) - clientRank(b.client) || periodeOrder(a.periode) - periodeOrder(b.periode) || byName(a.nama, b.nama))
             .map(l => ({ 'Client': l.client, 'Periode': l.periode, 'Nama Material': l.nama, 'ID Material': l.id, 'Ukuran': l.ukuran, 'SPP Total': l.spp, 'Satuan': l.satuan,
                 'Kedatangan': l.datang, 'Remark': l.sisa > 0 ? '-' + l.sisa : 'Terpenuhi', 'Total Bon': l.bon, 'Stock Gudang': l.stock }));
-        wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Summary');
+        ws = XLSX.utils.json_to_sheet(rows);
     } else if (currentView === 'BON') {
-        const mat = val('materialFilter');
+        name = 'Bon Material';
         const rows = bonData.filter(r => isAll(mat) || r[0] === mat).map(r => { const d = parseDate(r[4]);
-            return { t: d ? d.getTime() : 0, o: { 'Bulan': d ? `${BULAN[d.getMonth()]} ${d.getFullYear()}` : '-', 'Tanggal': r[4] || '-', 'Nama Material': r[0], 'ID Material': r[1], 'Ukuran': r[2], 'Jumlah': formatWholeNumber(r[3]), 'Remark': r[5] || '' } }; })
+            return { t: d ? d.getTime() : 0, o: { 'Bulan': d ? `${BULAN[d.getMonth()]} ${d.getFullYear()}` : '-', 'Tanggal': formatDate(r[4]) || '-', 'Nama Material': r[0], 'ID Material': r[1], 'Ukuran': r[2], 'Jumlah': formatWholeNumber(r[3]), 'Remark': r[5] || '' } }; })
             .sort((a, b) => b.t - a.t).map(x => x.o);
-        wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Bon Material');
+        ws = XLSX.utils.json_to_sheet(rows);
+    } else if (currentView === 'KEDATANGAN') {
+        name = 'Kedatangan';
+        const ix = kedIdx(), cols = [['No. Surat Jalan', ix.sj], ['Tanggal', ix.tgl], ['Material', ix.mat], ['Tipe / Ukuran', ix.tipe], ['Jumlah', ix.qty], ['Kondisi', ix.kond]];
+        const rows = kedData.filter(r => isAll(mat) || r[ix.mat] === mat)
+            .map(r => cols.map(([n, i]) => n === 'Jumlah' ? formatWholeNumber(r[i]) : n === 'Tanggal' ? (formatDate(r[i]) ?? '') : (r[i] ?? '')));
+        ws = XLSX.utils.aoa_to_sheet([cols.map(c => c[0]), ...rows]);
     } else {
-        wb = XLSX.utils.table_to_book(document.getElementById('dataTable'), { sheet: currentView });
+        name = 'Monitoring SPP';
+        const iM = apkHeaders.findIndex(h => norm(h) === 'nama material'), numCols = ['spp total', 'kedatangan'];
+        const rows = apkData.filter(r => isAll(mat) || r[iM] == mat)
+            .map(r => apkHeaders.map((hd, i) => numCols.includes(norm(hd)) ? formatWholeNumber(r[i]) : (formatDate(r[i]) ?? '')));
+        ws = XLSX.utils.aoa_to_sheet([apkHeaders, ...rows]);
     }
-    XLSX.writeFile(wb, `Report_${currentView}_${new Date().getTime()}.xlsx`);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, name);
+    XLSX.writeFile(wb, `Report_${currentView}_${today()}.xlsx`);
 }
+
+// ---------------------------------------------------------
+// INIT
+// ---------------------------------------------------------
+// Klik pada tabel: pilih baris (Monitoring SPP) / buka-tutup grup (Kedatangan)
+$('dataTable').addEventListener('click', e => {
+    const parent = e.target.closest('tr.accordion-parent');
+    if (parent) { toggleGroup(parent); return; }
+    const row = e.target.closest('tr.normal-row');
+    if (row) { $('dataTable').querySelectorAll('tr.selected-row').forEach(r => r.classList.remove('selected-row')); row.classList.add('selected-row'); }
+});
+
+// Hitung ulang posisi kolom beku bila ukuran tabel berubah (resize layar, font selesai dimuat, dll.)
+if ('ResizeObserver' in window) new ResizeObserver(() => requestAnimationFrame(applySticky)).observe($('dataTable'));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(applySticky);
+
+// Esc menutup popup; klik di luar popup menutup Login / Detail SPP
+document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if ($('formModal').classList.contains('active')) closeForm();
+    else if ($('loginModal').classList.contains('active')) closeLogin();
+    else if ($('detailModal').classList.contains('active')) closeDetailSPP();
+});
+$('loginModal').addEventListener('mousedown', e => { if (e.target === $('loginModal')) closeLogin(); });
+$('detailModal').addEventListener('mousedown', e => { if (e.target === $('detailModal')) closeDetailSPP(); });
+
 fetchData();
 </script>
 
