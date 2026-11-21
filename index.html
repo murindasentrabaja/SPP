@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
     <style>
         * { box-sizing: border-box; }
 
@@ -241,6 +243,57 @@
         .modal-content iframe { flex-grow: 1; border: none; width: 100%; height: 100%; }
         #printHeader { display: none; }
 
+        /* ===== Laporan Export (Gambar & PDF) — dirender di luar layar, lalu di-capture ===== */
+        .btn-img { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+        .btn-pdf { background: linear-gradient(135deg, #fb923c, #ef4444); }
+        #rpRoot { position: absolute; left: -12000px; top: 0; width: 1240px; }
+        .rp { width: 1240px; height: 877px; display: flex; flex-direction: column; overflow: hidden; background: #fff; color: #1e293b; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+        .rp-hero { padding: 28px 40px 22px; color: #fff; background: radial-gradient(circle at 96% -35%, rgba(255,255,255,.32), transparent 46%), radial-gradient(circle at 58% 160%, rgba(255,255,255,.2), transparent 42%), linear-gradient(120deg, #2563eb, #7c3aed 66%, #db2777 140%); }
+        .rp-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; }
+        .rp-brand { font-size: 13px; font-weight: 700; opacity: .85; }
+        .rp-title { margin: 4px 0 2px; font-size: 32px; font-weight: 800; letter-spacing: -.6px; line-height: 1.15; }
+        .rp-sub { font-size: 13px; font-weight: 500; opacity: .88; }
+        .rp-big { text-align: right; flex-shrink: 0; }
+        .rp-big b { display: block; font-size: 50px; font-weight: 800; line-height: 1; letter-spacing: -1.5px; }
+        .rp-big span { font-size: 12px; font-weight: 600; opacity: .85; }
+        .rp-meta { display: flex; margin-top: 18px; font-size: 12px; font-weight: 600; }
+        .rp-meta span { padding: 0 16px; border-left: 1px solid rgba(255,255,255,.4); }
+        .rp-meta span:first-child { padding-left: 0; border-left: 0; }
+        .rp-mini { display: flex; justify-content: space-between; align-items: center; padding: 13px 40px; color: #fff; font-size: 13px; font-weight: 800; background: linear-gradient(120deg, #2563eb, #7c3aed); }
+        .rp-mini span { font-weight: 600; opacity: .85; font-size: 12px; }
+        .rp-body { flex: 1; min-height: 0; overflow: hidden; padding: 18px 40px 12px; }
+        .rp-kpis { display: flex; margin-bottom: 14px; border: 1px solid #e2e8f0; border-radius: 14px; background: #f8fafc; }
+        .rp-kpis div { flex: 1; padding: 12px 18px; border-left: 1px solid #e2e8f0; }
+        .rp-kpis div:first-child { border-left: 0; }
+        .rp-kpis small { display: block; font-size: 11.5px; font-weight: 700; color: #64748b; }
+        .rp-kpis b { display: block; margin: 1px 0; font-size: 25px; font-weight: 800; color: #1e293b; }
+        .rp-kpis b.red { color: #dc2626; } .rp-kpis b.green { color: #059669; }
+        .rp-kpis em { font-style: normal; font-size: 11px; font-weight: 500; color: #94a3b8; }
+        .rp-bars { display: flex; gap: 14px; margin-bottom: 14px; }
+        .rp-bar { flex: 1; padding: 10px 14px; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .rp-bar > div { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 12px; font-weight: 800; }
+        .rp-bar span { font-weight: 600; color: #64748b; }
+        .rp-bar i { display: block; height: 9px; border-radius: 9px; background: #e2e8f0; overflow: hidden; }
+        .rp-bar u { display: block; height: 100%; border-radius: 9px; background: linear-gradient(90deg, #60a5fa, #8b5cf6); }
+        .rp-chips { margin-bottom: 14px; padding: 10px 14px 4px; border: 1px solid #fecaca; border-radius: 12px; background: #fef2f2; }
+        .rp-chips b { display: block; margin-bottom: 7px; font-size: 12px; color: #b91c1c; }
+        .rp-chip { display: inline-block; margin: 0 6px 6px 0; padding: 3px 10px; border: 1px solid #fecaca; border-radius: 999px; background: #fff; font-size: 11px; font-weight: 700; color: #991b1b; }
+        .rp-sec { margin: 2px 0 8px; font-size: 14px; font-weight: 800; }
+        .rp-tb { width: 100%; border-collapse: separate; border-spacing: 0; white-space: normal; }
+        .rp-tb th { position: static; padding: 9px 8px; background: #eef2ff; color: #3730a3; font-size: 11px; font-weight: 800; letter-spacing: 0; text-transform: none; text-align: center; border-bottom: 2px solid #c7d2fe; }
+        .rp-tb td { padding: 7px 8px; font-size: 11.5px; text-align: center; border-bottom: 1px solid #eef2f7; }
+        .rp-tb .l { text-align: left; }
+        .rp-tb tbody tr:nth-child(even) td { background: #fafbfd; }
+        .rp-tb tr.rp-g td { padding: 9px 12px; text-align: left; font-size: 12px; color: #3730a3; background: #e0e7ff; border-bottom: 1px solid #c7d2fe; }
+        .rp-g span { float: right; font-size: 11px; font-weight: 600; color: #6366f1; }
+        .rp-tb tr.rp-t td { background: #1e293b; color: #fff; font-weight: 800; border: 0; }
+        .rp-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 800; }
+        .rp-pill[data-t=ok] { background: #d1fae5; color: #047857; } .rp-pill[data-t=bad] { background: #fee2e2; color: #b91c1c; }
+        .rp-mute { color: #cbd5e1; }
+        .rp-note { margin-top: 12px; padding: 10px 14px; border: 1px solid #bfdbfe; border-radius: 10px; background: #eff6ff; color: #1e40af; font-size: 11px; font-weight: 600; line-height: 1.5; }
+        .rp-foot { display: flex; justify-content: space-between; padding: 11px 40px; border-top: 1px solid #e2e8f0; background: #f8fafc; font-size: 10.5px; font-weight: 600; color: #64748b; }
+        .rp-pg { font-weight: 800; color: #4f46e5; }
+
         @media print {
             body { background: white; padding: 0; }
             .ambient-blob, .controls, #loader, .summary-grid, .data-info, .license, .modal-overlay, .view-tabs { display: none !important; }
@@ -306,6 +359,8 @@
             <button class="btn-detail" id="btnDetail" onclick="openDetailSPP()">📋 Detail SPP</button>
             <button class="btn-refresh" id="btnSync" onclick="fetchData()">🍃 Sinkronisasi Data</button>
             <button class="btn-export" onclick="exportExcel()">📊 Export Excel</button>
+            <button class="btn-img btn-rp" onclick="exportReport('png')">🖼️ Export Gambar</button>
+            <button class="btn-pdf btn-rp" onclick="exportReport('pdf')">📄 Export PDF</button>
         </div>
     </div>
 
@@ -959,6 +1014,152 @@ function exportExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, name);
     XLSX.writeFile(wb, `Report_${currentView}_${today()}.xlsx`);
+}
+
+// ---------------------------------------------------------
+// EXPORT GAMBAR (PNG) & PDF — laporan dibuat dari data (bukan dari tampilan layar),
+// dibagi per halaman A4 landscape, lalu di-capture dengan html2canvas.
+// ---------------------------------------------------------
+const nf = n => Number(n).toLocaleString('id-ID');
+const fulfil = (spp, eff, minus) => { const p = spp > 0 ? eff / spp * 100 : 0; return minus ? Math.min(99, Math.floor(p)) : Math.min(100, Math.round(p)); };
+const rpStatus = sisa => sisa > 0 ? { t: '-' + sisa, c: 'bad' } : { t: 'Terpenuhi', c: 'ok' };
+const rpCell = c => c && typeof c === 'object' ? `<span class="rp-pill" data-t="${c.c}">${esc(c.t)}</span>` : c === '-' ? '<span class="rp-mute">-</span>' : esc(c);
+
+function rpFilter() {
+    const f = [['Material', 'materialFilter'], ['Client', 'clientFilter'], ['Periode', 'periodeFilter']]
+        .filter(([, id]) => $(id).style.display !== 'none' && !isAll(val(id))).map(([l, id]) => `${l} ${val(id)}`);
+    return f.join(', ') || 'Semua data';
+}
+
+function buildReport() {
+    const v = currentView, mat = val('materialFilter'), R = { rows: [], bars: [], kpis: [], notes: [], foot: null, chips: null };
+    if (v === 'APK') {
+        const H = apkHeaders.map(norm), iM = H.indexOf('nama material'), iS = H.indexOf('spp total'), iD = H.indexOf('kedatangan');
+        const rows = apkData.filter(r => isAll(mat) || r[iM] == mat), minus = {};
+        let spp = 0, got = 0, eff = 0;
+        rows.forEach(r => { const s = formatWholeNumber(r[iS]), d = formatWholeNumber(r[iD]); spp += s; got += d; eff += Math.min(s, d); if (d < s && r[iM]) minus[r[iM]] = (minus[r[iM]] || 0) + d - s; });
+        const nm = Object.keys(minus), pct = fulfil(spp, eff, nm.length > 0);
+        Object.assign(R, { title: 'Monitoring SPP', sub: 'Status kedatangan material terhadap Surat Permintaan Pengadaan', head: apkHeaders, al: H.map(h => h === 'nama material' ? 'l' : 'c'), big: { v: pct + '%', l: 'SPP terpenuhi' } });
+        R.rows = rows.map(r => { const bad = formatWholeNumber(r[iD]) < formatWholeNumber(r[iS]);
+            return apkHeaders.map((h, i) => { const hl = H[i]; let c = r[i] ?? '';
+                if (hl === 'spp total' || hl === 'kedatangan') { const n = formatWholeNumber(c); c = n === 0 ? '-' : n; } else { c = formatDate(c); if (isEmpty(c)) c = '-'; }
+                const t = String(c).trim();
+                if (hl === 'kedatangan' && c !== '-') return { t: c, c: bad ? 'bad' : 'ok' };
+                if (hl === 'remark' && /^terpenuhi$/i.test(t)) return { t, c: 'ok' };
+                if (hl === 'remark' && /^-\s*\d/.test(t)) return { t, c: 'bad' };
+                return c; }); });
+        R.kpis = [{ l: 'Baris SPP', v: nf(rows.length), s: 'item terdata' }, { l: 'Total SPP', v: nf(spp), s: 'qty diminta' }, { l: 'Kedatangan', v: nf(got), s: 'qty diterima', c: 'green' },
+            { l: 'Material kurang', v: nm.length, s: nm.length ? 'perlu ditindaklanjuti' : 'semua terpenuhi', c: nm.length ? 'red' : 'green' }];
+        R.bars = [{ l: 'Pemenuhan material keseluruhan', p: pct, s: `${nf(eff)} dari ${nf(spp)} qty` }];
+        if (nm.length) R.chips = { t: 'Material kurang / minus (-)', items: nm.slice(0, 16).map(n => `${n}: ${minus[n]}`).concat(nm.length > 16 ? [`+${nm.length - 16} material lainnya`] : []) };
+        R.foot = H.map((h, i) => i === iM ? 'Total' : i === iS ? nf(spp) : i === iD ? nf(got) : '');
+    } else if (v === 'SUMMARY') {
+        const ls = filteredSummary().sort((a, b) => clientRank(a.client) - clientRank(b.client) || periodeOrder(a.periode) - periodeOrder(b.periode) || byName(a.nama, b.nama));
+        Object.assign(R, { title: 'Summary SPP per Client & Periode', sub: 'Rekap SPP, kedatangan, bon, dan stock gudang', big: { v: pctOf(ls) + '%', l: 'SPP terpenuhi' },
+            head: ['No', 'Nama Material', 'ID Material', 'Ukuran', 'SPP Total', 'Satuan', 'Kedatangan', 'Remark', 'Total Bon', 'Stock Gudang'], al: ['c', 'l', 'c', 'c', 'c', 'c', 'c', 'c', 'c', 'c'] });
+        [...new Set(ls.map(l => l.client))].forEach(c => {
+            const cl = ls.filter(l => l.client === c); R.bars.push({ l: c, p: pctOf(cl), s: `${cl.filter(l => l.sisa > 0).length} item kurang` });
+            [...new Set(cl.map(l => l.periode))].forEach(p => { const g = cl.filter(l => l.periode === p);
+                R.rows.push({ g: `${c} - ${p}`, m: `${g.length} item, SPP ${nf(sum(g, 'spp'))}, datang ${nf(sum(g, 'datang'))}, ${pctOf(g)}% terpenuhi` });
+                g.forEach((l, i) => R.rows.push([i + 1, l.nama, l.id, l.ukuran, l.spp, l.satuan, l.datang || '-', rpStatus(l.sisa), dash(l.bon), dash(l.stock)])); }); });
+        R.kpis = [{ l: 'Total SPP', v: nf(sum(ls, 'spp')), s: `${ls.length} baris SPP` }, { l: 'Kedatangan', v: nf(sum(ls, 'datang')), s: 'qty diterima', c: 'green' }, { l: 'Total Bon', v: nf(sum(ls, 'bon')), s: 'qty diambil' }, { l: 'Stock gudang', v: nf(sum(ls, 'stock')), s: 'qty tersedia' }];
+        R.foot = ['', 'Total', '', '', sum(ls, 'spp'), '', sum(ls, 'datang'), pctOf(ls) + '%', sum(ls, 'bon'), sum(ls, 'stock')];
+        R.notes = ['Kedatangan, Total Bon, dan Stock per periode dialokasikan otomatis (periode SPP terlama dipenuhi lebih dulu), karena sheet Kedatangan dan Bon tidak mencatat periode atau client.'];
+    } else if (v === 'KEDATANGAN') {
+        const ix = kedIdx(), g = new Map(); let n = 0, tot = 0, bad = 0;
+        kedData.forEach(r => { const m = r[ix.mat] || 'Unknown'; if (!isAll(mat) && m !== mat) return;
+            const t = r[ix.tipe] || '-', k = m + '|' + t; if (!g.has(k)) g.set(k, { m, t, tot: 0, d: [] });
+            const o = g.get(k), q = formatWholeNumber(r[ix.qty]), kd = String(r[ix.kond] || '-'), ok = /bagus/i.test(kd);
+            o.tot += q; tot += q; n++; if (!ok) bad += q; o.d.push([r[ix.sj] || '-', formatDate(r[ix.tgl]) || '-', q, { t: kd, c: ok ? 'ok' : 'bad' }]); });
+        Object.assign(R, { title: 'Kedatangan Material', sub: 'Riwayat surat jalan dan akumulasi material masuk', big: { v: '+' + nf(tot), l: 'total qty masuk' }, head: ['No. Surat Jalan', 'Tanggal Datang', 'Jumlah Qty', 'Kondisi'], al: ['l', 'c', 'c', 'c'] });
+        g.forEach(o => { R.rows.push({ g: `${o.m} - ${o.t}`, m: `${o.d.length} pengiriman, total masuk +${nf(o.tot)}` }); o.d.forEach(d => R.rows.push(d)); });
+        R.kpis = [{ l: 'Grup material', v: nf(g.size), s: 'material dan tipe' }, { l: 'Riwayat kedatangan', v: nf(n), s: 'surat jalan' }, { l: 'Total qty masuk', v: nf(tot), s: 'seluruh grup', c: 'green' }, { l: 'Kondisi tidak bagus', v: nf(bad), s: bad ? 'qty perlu dicek' : 'tidak ada', c: bad ? 'red' : 'green' }];
+        R.foot = ['Total', '', tot, ''];
+    } else {
+        const items = bonData.filter(r => isAll(mat) || r[0] === mat).map(r => ({ d: parseDate(r[4]), r })).sort((a, b) => (b.d ? b.d.getTime() : 0) - (a.d ? a.d.getTime() : 0));
+        const months = new Map(), qty = x => formatWholeNumber(x.r[3]);
+        items.forEach(x => { const k = x.d ? `${BULAN[x.d.getMonth()]} ${x.d.getFullYear()}` : 'Tanpa Tanggal'; if (!months.has(k)) months.set(k, []); months.get(k).push(x); });
+        const tot = items.reduce((s, x) => s + qty(x), 0);
+        Object.assign(R, { title: 'Bon Material', sub: 'Riwayat pengambilan material dari gudang (terbaru di atas)', big: { v: nf(tot), l: 'total qty diambil' }, head: ['Tanggal', 'Nama Material', 'ID Material', 'Ukuran', 'Jumlah', 'Remark'], al: ['c', 'l', 'c', 'c', 'c', 'l'] });
+        months.forEach((xs, k) => { R.rows.push({ g: k, m: `${xs.length} pengambilan, total ${nf(xs.reduce((s, x) => s + qty(x), 0))}` });
+            xs.forEach(x => R.rows.push([formatDate(x.r[4]) || '-', x.r[0], x.r[1], x.r[2], qty(x), x.r[5] || '-'])); });
+        R.kpis = [{ l: 'Pengambilan', v: nf(items.length), s: 'transaksi bon' }, { l: 'Total qty', v: nf(tot), s: 'material diambil', c: 'green' }, { l: 'Jenis material', v: nf(new Set(items.map(x => x.r[0])).size), s: 'material berbeda' }, { l: 'Jumlah bulan', v: nf(months.size), s: 'periode bon' }];
+        R.foot = ['Total', '', '', '', tot, ''];
+    }
+    R.count = R.rows.filter(r => r.g === undefined).length;
+    return R.count ? R : null;
+}
+
+function rpPages(R) {
+    const root = document.createElement('div'); root.id = 'rpRoot'; document.body.appendChild(root);
+    const now = new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }), pages = [];
+    const user = session ? session.name : 'Tamu';
+    const foot = `<footer class="rp-foot"><span>PT Murinda Sentra Baja, Kalijati, Subang. Dibuat otomatis oleh ERP MSB pada ${now}</span><span class="rp-pg"></span></footer>`;
+    const mk = first => {
+        const p = document.createElement('section'); p.className = 'rp';
+        p.innerHTML = (first
+            ? `<header class="rp-hero"><div class="rp-top"><div><div class="rp-brand">PT Murinda Sentra Baja</div><div class="rp-title">${esc(R.title)}</div><div class="rp-sub">${esc(R.sub)}</div></div><div class="rp-big"><b>${esc(R.big.v)}</b><span>${esc(R.big.l)}</span></div></div>
+               <div class="rp-meta"><span>Dicetak ${now}</span><span>Oleh ${esc(user)}</span><span>Filter: ${esc(rpFilter())}</span><span>${nf(R.count)} baris data</span></div></header>`
+            : `<header class="rp-mini">PT Murinda Sentra Baja<span>${esc(R.title)} (lanjutan), ${esc(rpFilter())}</span></header>`) + `<div class="rp-body"></div>` + foot;
+        root.appendChild(p); pages.push(p); return p;
+    };
+    let pg = mk(true), body = pg.querySelector('.rp-body'), tb;
+    body.innerHTML = `<div class="rp-kpis">${R.kpis.map(k => `<div><small>${esc(k.l)}</small><b${k.c ? ` class="${k.c}"` : ''}>${esc(k.v)}</b><em>${esc(k.s)}</em></div>`).join('')}</div>`
+        + `<div class="rp-bars">${R.bars.map(b => `<div class="rp-bar"><div><b>${esc(b.l)}</b><span>${esc(b.s)}, ${b.p}% terpenuhi</span></div><i><u style="width:${b.p}%"></u></i></div>`).join('')}</div>`
+        + (R.chips ? `<div class="rp-chips"><b>${esc(R.chips.t)}</b>${R.chips.items.map(t => `<span class="rp-chip">${esc(t)}</span>`).join('')}</div>` : '') + '<div class="rp-sec">Rincian data</div>';
+    const newTable = () => { body.insertAdjacentHTML('beforeend', `<table class="rp-tb"><thead><tr>${R.head.map((h, i) => `<th class="${R.al[i] === 'l' ? 'l' : ''}">${esc(h)}</th>`).join('')}</tr></thead><tbody></tbody></table>`); tb = body.lastElementChild.tBodies[0]; };
+    const over = () => body.scrollHeight > body.clientHeight + 1;
+    const nextPage = () => { pg = mk(false); body = pg.querySelector('.rp-body'); };
+    const td = (c, i) => `<td class="${R.al[i] === 'l' ? 'l' : ''}">${rpCell(c)}</td>`;
+    newTable();
+    R.rows.concat(R.foot ? [{ t: R.foot }] : []).forEach(r => {
+        tb.insertAdjacentHTML('beforeend', r.g !== undefined ? `<tr class="rp-g"><td colspan="${R.head.length}"><b>${esc(r.g)}</b><span>${esc(r.m)}</span></td></tr>`
+            : r.t ? `<tr class="rp-t">${r.t.map(td).join('')}</tr>` : `<tr>${r.map(td).join('')}</tr>`);
+        const tr = tb.lastElementChild;
+        if (!over()) return;
+        const prev = tr.previousElementSibling, mv = prev && prev.classList.contains('rp-g') && !tr.classList.contains('rp-g') ? [prev, tr] : [tr]; // judul grup tidak boleh sendirian di akhir halaman
+        mv.forEach(e => e.remove()); nextPage(); newTable(); mv.forEach(e => tb.appendChild(e));
+    });
+    if (R.notes.length) {
+        const html = R.notes.map(n => `<div class="rp-note">${esc(n)}</div>`).join('');
+        body.insertAdjacentHTML('beforeend', html);
+        if (over()) { [...body.querySelectorAll('.rp-note')].forEach(e => e.remove()); nextPage(); body.innerHTML = html; }
+    }
+    pages.forEach((p, i) => { p.querySelector('.rp-pg').textContent = `Halaman ${i + 1} dari ${pages.length}`; });
+    return pages;
+}
+
+function rpSave(blob, name) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const rpBlob = c => new Promise(r => c.toBlob(r, 'image/png'));
+
+async function exportReport(kind) {
+    if (!window.html2canvas || (kind === 'pdf' && !(window.jspdf && window.jspdf.jsPDF))) { alert('Library export belum termuat. Periksa koneksi internet lalu muat ulang halaman.'); return; }
+    const R = buildReport(); if (!R) { alert('Tidak ada data untuk diexport. Tunggu data selesai dimuat atau ubah filter.'); return; }
+    const btns = [...document.querySelectorAll('.btn-rp')], old = btns.map(b => b.textContent);
+    btns.forEach(b => { b.disabled = true; b.textContent = '⏳ Memproses…'; });
+    let root;
+    try {
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        const pages = rpPages(R); root = pages[0].parentNode;
+        const cv = []; for (const p of pages) cv.push(await html2canvas(p, { scale: 2, backgroundColor: '#ffffff', logging: false }));
+        const base = `Laporan_${currentView}_${today()}`;
+        if (kind === 'pdf') {
+            const doc = new window.jspdf.jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
+            cv.forEach((c, i) => { if (i) doc.addPage(); doc.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 297, 210, undefined, 'FAST'); });
+            doc.setProperties({ title: `${R.title} - PT Murinda Sentra Baja`, subject: rpFilter(), author: 'ERP MSB' });
+            doc.save(base + '.pdf');
+        } else if (cv[0].width * cv.reduce((s, c) => s + c.height, 0) <= 16e6) { // satu gambar panjang bila ukurannya aman untuk browser/HP
+            const big = document.createElement('canvas'); big.width = cv[0].width; big.height = cv.reduce((s, c) => s + c.height, 0);
+            const g = big.getContext('2d'); let y = 0; cv.forEach(c => { g.drawImage(c, 0, y); y += c.height; });
+            rpSave(await rpBlob(big), base + '.png');
+        } else { // data panjang: satu file PNG per halaman
+            for (let i = 0; i < cv.length; i++) { rpSave(await rpBlob(cv[i]), `${base}_hal${i + 1}.png`); await new Promise(r => setTimeout(r, 400)); }
+        }
+    } catch (e) { console.error(e); alert('Gagal membuat file export. Coba lagi atau persempit filter data.'); }
+    finally { if (root) root.remove(); btns.forEach((b, i) => { b.disabled = false; b.textContent = old[i]; }); }
 }
 
 // ---------------------------------------------------------
